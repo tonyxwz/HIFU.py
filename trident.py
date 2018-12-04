@@ -1,7 +1,6 @@
 import numpy as np
-from sympy import Plane, Line, Ray
 from ray import PowRay, AuxRay
-# from geometric.basic import Vector, Plane, Line
+from geometric.basic import Plane
 
 
 class Trident(object):
@@ -17,13 +16,14 @@ class Trident(object):
         self.aux_ray2 = AuxRay(start=start_aux2, direction=dire_aux2)
 
     def get_area_at(self, distance):
-        p0 = distance * self.pow_ray.unit_vector + np.array(self.pow_ray.source, dtype=np.float)
+        p0 = distance * self.pow_ray.unit_vector + self.pow_ray.p
         # new Plane instance too slow
-        plane = Plane(p0, normal_vector=self.pow_ray.direction_ratio)
-        p1 = np.array(plane.intersection(self.aux_ray1)[0], dtype=np.float)
-        p2 = np.array(plane.intersection(self.aux_ray2)[0], dtype=np.float)
+
+        plane = Plane(p0, self.pow_ray.d)
+        p1 = plane.intersect_line(self.aux_ray1)
+        p2 = plane.intersect_line(self.aux_ray2)
         
-        return np.linalg.norm(np.cross(p1-p0, p2-p0))
+        return np.linalg.norm(np.cross(p1-p0, p2-p0)) / 2
         
     def get_power_at(self, distance):
         pass
