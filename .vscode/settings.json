@@ -1,0 +1,12 @@
+{
+    "python.venvFolders": [
+        "envs",
+        ".pyenv",
+        ".direnv",
+        "venv"
+    ],
+    "terminal.integrated.cursorBlinking": true,
+    "terminal.integrated.shellArgs.windows": [],
+    "python.pythonPath": "C:\\Users\\20175506\\AppData\\Local\\Continuum\\anaconda3\\envs\\pyHIFU\\python.exe",
+    
+}
