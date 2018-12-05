@@ -56,7 +56,7 @@ class Ray(Line):
 
 
 
-# Point is just np.ndarray
+# Point is just np.ndarray shape = (3,)
 # class Point(np.ndarray):
 #     def __init__(self, x, y, z):
 #         self.x = x

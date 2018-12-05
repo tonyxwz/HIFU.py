@@ -9,7 +9,8 @@ class Trident(object):
     """
     def __init__(self, start_pow, dire_pow,
             start_aux1, dire_aux1,
-            start_aux2, dire_aux2):
+            start_aux2, dire_aux2,
+            tranducer_el_no=None):
             # medium)
         self.pow_ray = PowRay(start=start_pow, direction=dire_pow)
         self.aux_ray1 = AuxRay(start=start_aux1, direction=dire_aux1)
