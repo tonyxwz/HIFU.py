@@ -1,7 +1,7 @@
 import unittest
 from pyHIFU.geometric import *
 
-class TestLinesMethods(unittest.TestCase):
+class Test_LinesMethods(unittest.TestCase):
 
     def test_upper(self):
         self.assertEqual('foo'.upper(), 'FOO')
@@ -18,10 +18,10 @@ class TestLinesMethods(unittest.TestCase):
             s.split(2)
 
 
-class TestSurfacesMethods(unittest.TestCase):
+class Test_SurfacesMethods(unittest.TestCase):
     pass
 
-class TestVolumesMethods(unittest.TestCase):
+class Test_VolumesMethods(unittest.TestCase):
     pass
 
 if __name__ == '__main__':

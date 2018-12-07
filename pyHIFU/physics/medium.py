@@ -16,4 +16,3 @@ class Medium(object):
         self.frequency = frequency
         self.angular_freq = 2 * np.pi * self.frequency
 
-        

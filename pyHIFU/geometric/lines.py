@@ -12,11 +12,11 @@ class Line(object):
         # self.b
         # self.c
         # self.d
-        # self.abcd = 
+        # self.abcd =
 
     def __eq__(self, other):
         return (Vec3.are_parallel(self.d, other.d) and
-            self.has_point(other.p))
+                self.has_point(other.p))
 
     def __str__(self):
         return str(self.__dict__)
@@ -31,7 +31,7 @@ class Line(object):
 
     def intersect_line(self, line2):
         pass
-    
+
     def intersect_plane(self, plane):
         return plane.intersect_line(line=self)
 
@@ -45,15 +45,15 @@ class Line(object):
 
     def is_parallel(self, other):
         return Vec3.are_equal(self.d, other.d)
-    
+
     def find_foot(self, point):
         """ food in perpendicular """
         if type(point) is not np.ndarray:
             point = np.array(point)
-        
+
         t = self.d.dot(point - self.p) / self.d.dot(self.d)
         return self.to_coordinate(t)
-        
+
     def distance_to_point(self, point):
         foot = self.find_foot(point)
         return np.linalg.norm(foot - point)
@@ -66,11 +66,11 @@ class Ray(Line):
 
     def __eq__(self, other):
         return (Vec3.are_equal(self.d, other.d) and
-            Vec3.are_equal(self.start, other.start))
-    
+                Vec3.are_equal(self.start, other.start))
+
     def has_point(self, point):
         if (super().has_point(point) and
-            self.d.dot(point - self.start) >= 0):
+                self.d.dot(point - self.start) >= 0):
             return True
         else:
             return False
@@ -88,14 +88,14 @@ class Segment(Line):
             self.end = self.to_coordinate(l)
 
     def __eq__(self, other):
-        return (super().__eq__(other) and 
-            Vec3.are_equal(self.start, other.start) and
-            Vec3.are_equal(self.end, other.end))
-        
+        return (super().__eq__(other) and
+                Vec3.are_equal(self.start, other.start) and
+                Vec3.are_equal(self.end, other.end))
+
     def has_point(self, point):
-        if (super().has_point(point) and 
+        if (super().has_point(point) and
             self.d.dot(point - self.start) >= 0 and
-            self.d.dot(point - self.end) <= 0):
+                self.d.dot(point - self.end) <= 0):
             return True
         else:
             return False

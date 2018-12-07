@@ -1,8 +1,8 @@
 import abc
 import numpy as np
-from pyHIFU.geometric.basic import Ray as GeoRay
+from pyHIFU.geometric.lines import Ray as GeoRay
 
-        
+
 class Ray(GeoRay):
     def __init__(self, start=None, direction=None):
         super().__init__(start, direction)
@@ -14,8 +14,8 @@ class Ray(GeoRay):
 
 class PowRay(Ray):
     def __init__(self, start=None, direction=None,
-            wave_type=None, polarization=None, initial_phase=None,
-            medium=None):
+                 wave_type=None, polarization=None, initial_phase=None,
+                 medium=None):
         super().__init__(start, direction)
         self.wave_type = wave_type
         self.polarization = polarization
@@ -25,8 +25,8 @@ class PowRay(Ray):
 
 class AuxRay(Ray):
     def __init__(self, start=None, direction=None,
-            wave_type=None, polarization=None, initial_phase=None,
-            medium=None):
+                 wave_type=None, polarization=None, initial_phase=None,
+                 medium=None):
         super().__init__(start, direction)
         self.wave_type = wave_type
         self.polarization = polarization
