@@ -3,7 +3,6 @@ import numpy as np
 
 EPS = np.finfo(float).eps
 
-
 class Vec3(object):
     # static methods manipulate a array
     @staticmethod
@@ -13,7 +12,6 @@ class Vec3(object):
     @staticmethod
     def are_parallel(a, b):
         return all(np.cross(a, b) == 0)
-
     @staticmethod
     def are_perpendicular(a, b):
         return a.dot(b) == 0

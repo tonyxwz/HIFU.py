@@ -5,7 +5,6 @@ from pyHIFU.geometric.lines import Line, Ray, Segment
 
 class Plane(object):
     """ faster and more simplified """
-
     def __init__(self, p, n):
         self.p = np.array(p)
         self.normal_vector = Vec3.normalize(n)
@@ -28,7 +27,6 @@ class Plane(object):
             line = Line(np.array(p0), np.array(vd))
         else:
             raise Exception("illegal argument")
-
         b = self.normal_vector.dot(line.d)
         if b == 0:
             return None
@@ -132,7 +130,6 @@ class Sphere(object):
 
 class Barrel(object):
     """ Cylinder surface """
-
     def __init__(self, axis_vector, radius, center):
         self.axis_vector = np.array(axis_vector)
         self.radius = radius

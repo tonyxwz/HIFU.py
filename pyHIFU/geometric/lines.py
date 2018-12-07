@@ -31,7 +31,6 @@ class Line(object):
 
     def intersect_line(self, line2):
         pass
-
     def intersect_plane(self, plane):
         return plane.intersect_line(line=self)
 
@@ -45,7 +44,6 @@ class Line(object):
 
     def is_parallel(self, other):
         return Vec3.are_equal(self.d, other.d)
-
     def find_foot(self, point):
         """ food in perpendicular """
         if type(point) is not np.ndarray:
