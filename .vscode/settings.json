@@ -7,6 +7,7 @@
     ],
     "terminal.integrated.cursorBlinking": true,
     "terminal.integrated.shellArgs.windows": [],
-    "python.pythonPath": "C:\\Users\\20175506\\AppData\\Local\\Continuum\\anaconda3\\envs\\pyHIFU\\python.exe",
-    
+    // "python.pythonPath": "C:\\Users\\20175506\\AppData\\Local\\Continuum\\anaconda3\\envs\\pyHIFU\\python.exe",
+    "python.pythonPath": "/home/joey/Apps/miniconda3/envs/HIFU/bin/python"
+
 }
