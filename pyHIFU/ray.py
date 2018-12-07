@@ -1,6 +1,6 @@
 import abc
 import numpy as np
-from geometric.basic import Ray as GeoRay
+from pyHIFU.geometric.basic import Ray as GeoRay
 
         
 class Ray(GeoRay):

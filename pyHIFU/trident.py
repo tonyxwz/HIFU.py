@@ -1,6 +1,6 @@
 import numpy as np
-from ray import PowRay, AuxRay
-from geometric.basic import Plane
+from pyHIFU.ray import PowRay, AuxRay
+from pyHIFU.geometric.basic import Plane
 
 
 class Trident(object):
@@ -15,6 +15,9 @@ class Trident(object):
         self.pow_ray = PowRay(start=start_pow, direction=dire_pow)
         self.aux_ray1 = AuxRay(start=start_aux1, direction=dire_aux1)
         self.aux_ray2 = AuxRay(start=start_aux2, direction=dire_aux2)
+
+    def __str__(self):
+        return str(self.__dict__)
 
     def get_area_at(self, distance):
         p0 = distance * self.pow_ray.unit_vector + self.pow_ray.p
