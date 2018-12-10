@@ -1,0 +1,68 @@
+{
+    "medium_list": [
+        {
+            "id": 0,
+            "tissue_type": "bone",
+            "physics":{
+
+            },
+            "geometry": {
+                "shape_type": "cuboid",
+                "parameters": {
+                    "o": [0,0,0],
+                    "a": [5,0,0],
+                    "b": [0,5,0],
+                    "c": [0,0,5]
+                }
+            }
+        },
+        {
+            "id": 1,
+            "tissue_type": "muscle",
+            "physics":{
+
+            },
+            "geometry": {
+                "shape_type": "cuboid",
+                "parameters": {
+                    "o": [0,5,0],
+                    "a": [5,0,0],
+                    "b": [0,5,0],
+                    "c": [0,0,5]
+                }
+            }
+        },
+        {
+            "id": 2,
+            "tissue_type": "bone",
+            "physics":{
+
+            },
+            "geometry": {
+                "shape_type": "cuboid",
+                "parameters": {
+                    "o": [5,5,0],
+                    "a": [5,0,0],
+                    "b": [0,5,0],
+                    "c": [0,0,5]
+                }
+            }
+        },
+        {
+            "id": 3,
+            "tissue_type": "muscle",
+            "physics":{
+
+            },
+            "geometry": {
+                "shape_type": "cuboid",
+                "parameters": {
+                    "o": [5,0,0],
+                    "a": [5,0,0],
+                    "b": [0,5,0],
+                    "c": [0,0,5]
+                }
+            }
+        }
+    ]
+}

@@ -7,7 +7,7 @@ class Vec3(object):
     # static methods manipulate a array
     @staticmethod
     def are_equal(a, b):
-        return all(np.abs(a - b) < np.finfo(float).eps)
+        return all(np.abs(a - b) < EPS)
 
     @staticmethod
     def are_parallel(a, b):
@@ -18,6 +18,9 @@ class Vec3(object):
 
     @staticmethod
     def normalize(v):
+        # print("vec3::normalize::v:", v)
+        if not np.any(v):
+            return np.array(v)
         return np.array(v) / np.linalg.norm(v)
 
     @staticmethod

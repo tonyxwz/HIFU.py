@@ -54,9 +54,7 @@ class Plane(object):
         pass
 
     def n_common_edge(self, other):
-        """
-        return number of common edges
-        """
+        """ return number of common edges """
         ans = 0
         for e1 in self.edges:
             for e2 in other.edges:
@@ -109,10 +107,11 @@ class Polygon(Plane):
 
 
 class Rectangle(Plane):
-    def __init__(self, p, va, vb):
+    def __init__(self, p, va, vb, **kw):
         super().__init__(p, np.cross(va, vb))
         self.va = np.array(va)
         self.vb = np.array(vb)
+        self.index = kw['index']
 
         self.edges.append(Segment(self.p, self.va))
         self.edges.append(Segment(self.p+self.va, self.vb))
@@ -122,6 +121,18 @@ class Rectangle(Plane):
 
     def __str__(self):
         return str(self.__dict__)
+
+    def __eq__(self, other):
+        """ equality regardless of normal vectors """
+        ans = True
+        for e1 in self.edges:
+            q = False
+            for e2 in other.edges:
+                q = q or (e1 == e2)
+            ans = ans and q
+        return ans
+    def is_overlapping(self, other):
+        pass
 
     def has_point(self, point):
         diag = np.abs(self.va + self.vb)
@@ -153,7 +164,7 @@ class Sphere(object):
         return False
 
 
-class Barrel(object):
+class BarrelShell(object):
     """ Cylinder surface """
 
     def __init__(self, axis_vector, radius, center):
@@ -172,3 +183,7 @@ class Barrel(object):
         dist = self.axis.distance_to_point(point)
         return (dist - self.radius < np.finfo(float).eps and
                 self.axis.has_point(foot))
+
+    def tan_plane_at(self, point):
+        # TODO: calculate tangential plane for acoustics calculation
+        pass
