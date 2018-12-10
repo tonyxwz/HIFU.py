@@ -4,7 +4,11 @@ from pyHIFU.geometric.lines import Line, Ray, Segment
 
 
 class Plane(object):
-    """ faster and more simplified """
+    """ 
+    All edges should be counter-clockwise
+    right hand cross product direction
+    """
+
     def __init__(self, p, n):
         self.p = np.array(p)
         self.normal_vector = Vec3.normalize(n)
@@ -13,6 +17,7 @@ class Plane(object):
         self.abcd = np.ones(4)
         self.abcd[0:3] = n
         self.abcd[3] = -self.p.dot(n)
+        self.edges = []
 
     def __eq__(self, other):
         return (Vec3.are_perpendicular(self.p - other.p, self.normal_vector) and
@@ -47,6 +52,16 @@ class Plane(object):
 
     def get_matrix(self):
         pass
+
+    def n_common_edge(self, other):
+        """
+        return number of common edges
+        """
+        ans = 0
+        for e1 in self.edges:
+            for e2 in other.edges:
+                ans += int(e1 == e2)
+        return ans
 
 
 class Circle(Plane):
@@ -99,6 +114,15 @@ class Rectangle(Plane):
         self.va = np.array(va)
         self.vb = np.array(vb)
 
+        self.edges.append(Segment(self.p, self.va))
+        self.edges.append(Segment(self.p+self.va, self.vb))
+        self.edges.append(
+            Segment(self.p+self.va+self.vb, np.negative(self.va)))
+        self.edges.append(Segment(self.p+self.vb, np.negative(self.vb)))
+
+    def __str__(self):
+        return str(self.__dict__)
+
     def has_point(self, point):
         diag = np.abs(self.va + self.vb)
         if super().has_point(point) and all(diag >= np.abs(point-self.p)):
@@ -109,6 +133,7 @@ class Rectangle(Plane):
 
 class Sphere(object):
     """ Sphere with direction and angle """
+
     def __init__(self, center, radius, axis_vector, angle=np.pi):
         self.center = np.array(center)
         self.radius = np.float(radius)
@@ -130,6 +155,7 @@ class Sphere(object):
 
 class Barrel(object):
     """ Cylinder surface """
+
     def __init__(self, axis_vector, radius, center):
         self.axis_vector = np.array(axis_vector)
         self.radius = radius

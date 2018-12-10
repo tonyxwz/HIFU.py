@@ -31,6 +31,7 @@ class Line(object):
 
     def intersect_line(self, line2):
         pass
+
     def intersect_plane(self, plane):
         return plane.intersect_line(line=self)
 
@@ -44,6 +45,7 @@ class Line(object):
 
     def is_parallel(self, other):
         return Vec3.are_equal(self.d, other.d)
+
     def find_foot(self, point):
         """ food in perpendicular """
         if type(point) is not np.ndarray:
@@ -86,9 +88,10 @@ class Segment(Line):
             self.end = self.to_coordinate(l)
 
     def __eq__(self, other):
-        return (super().__eq__(other) and
-                Vec3.are_equal(self.start, other.start) and
-                Vec3.are_equal(self.end, other.end))
+        return ((Vec3.are_equal(self.start, other.start) and
+                 Vec3.are_equal(self.end, other.end)) or
+                (Vec3.are_equal(self.start, other.end) and
+                 Vec3.are_equal(self.end, other.start)))
 
     def has_point(self, point):
         if (super().has_point(point) and
