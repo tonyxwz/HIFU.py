@@ -1,8 +1,8 @@
 import numpy as np
-from pyHIFU.io.config import read_shape
+from pyHIFU.io.config import readjson
 from pyHIFU.geometric.volume import Ball, Cuboid, Cylinder
 
-SHAPE_DICT = {'ball': Ball, 'cuboid': Cuboid, 'cylinder': Cylinder}
+SHAPE_FUNC_DICT = {'ball': Ball, 'cuboid': Cuboid, 'cylinder': Cylinder}
 
 
 class Medium(object):
@@ -16,7 +16,7 @@ class Medium(object):
         # TODO: initialize physics info
         shape_type = geoinfo['shape_type']
         # print("Medium::geoinfo[]:", geoinfo['parameters'])
-        self.shape = SHAPE_DICT[shape_type](**geoinfo['parameters'])
+        self.shape = SHAPE_FUNC_DICT[shape_type](**geoinfo['parameters'])
         self.index = kw['index']
 
 
@@ -29,7 +29,7 @@ class MediaComplex(list):
     # def __init__(self, media_list, adj_mtx):
     def __init__(self, config_file_path):
         super().__init__()
-        config_json = read_shape(json_path=config_file_path)
+        config_json = readjson(json_path=config_file_path)
         self.__build(config_json["medium_list"])
         # self.adj_mtx = np.eye(len(self))
 
@@ -46,10 +46,13 @@ class MediaComplex(list):
         
         # now you have the list ready, time to build adjacency matrix
         # traverse all media (double compare loop)
-        for item1 in self:
+        for i,item1 in enumerate(self):
             l = list()
-            for item2 in self:
-                l.append(item1.shape.adj_at(item2.shape))
+            for j,item2 in enumerate(self):
+                if i == j:
+                    l.append([])
+                else:
+                    l.append(item1.shape.adj_at(item2.shape))
             self.adj_mtx.append(l)
 
     def find_next(self, med_idx, side_idx):
@@ -58,9 +61,13 @@ class MediaComplex(list):
         and outgoing side `side`
         """
         # TODO
-        pass
+        r = []
+        for i,v in enumerate(self.adj_mtx[med_idx]):
+            if side_idx in v:
+                r.append(i)
+        return r
 
 
 if __name__ == "__main__":
     mc = MediaComplex('data/example2.json')
-    print(mc.adj_mtx)
+    print(mc.find_next(1, 4))
