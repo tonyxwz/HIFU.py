@@ -1,7 +1,7 @@
 import numpy as np
-from pyHIFU.geometric.vec3 import Vec3
-from pyHIFU.geometric.lines import Line, Ray, Segment
-from pyHIFU.geometric.surfaces import Plane, Circle, Sphere, Rectangle
+from .vec3 import Vec3
+from .lines import Line, Ray, Segment
+from .surfaces import Plane, Circle, Sphere, Rectangle
 
 
 class Volume(list):

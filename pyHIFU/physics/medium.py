@@ -27,9 +27,10 @@ class MediaComplex(list):
     """
 
     # def __init__(self, media_list, adj_mtx):
-    def __init__(self, config_file_path):
+    def __init__(self, config_json=None, config_file_path=None):
         super().__init__()
-        config_json = readjson(json_path=config_file_path)
+        if config_json == None:
+            config_json = readjson(json_path=config_file_path)
         self.__build(config_json["medium_list"])
         # self.adj_mtx = np.eye(len(self))
 
@@ -60,7 +61,7 @@ class MediaComplex(list):
         find the index of next medium, given the index of current medium
         and outgoing side `side`
         """
-        # TODO
+        # TODO: if there's no adjacency, it is adjacent to the air.
         r = []
         for i,v in enumerate(self.adj_mtx[med_idx]):
             if side_idx in v:
@@ -69,5 +70,5 @@ class MediaComplex(list):
 
 
 if __name__ == "__main__":
-    mc = MediaComplex('data/example2.json')
-    print(mc.find_next(1, 4))
+    mc = MediaComplex(config_file_path='data/example2.json')
+    print(mc.adj_mtx)

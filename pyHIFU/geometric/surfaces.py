@@ -1,6 +1,6 @@
 import numpy as np
-from pyHIFU.geometric.vec3 import Vec3
-from pyHIFU.geometric.lines import Line, Ray, Segment
+from .vec3 import Vec3
+from .lines import Line, Ray, Segment
 
 
 class Plane(object):
@@ -43,8 +43,11 @@ class Plane(object):
         return "line"
 
     def has_point(self, point=None):
-        point = np.array(point)
-        return Vec3.are_perpendicular(self.normal_vector, point - self.p)
+        if point is not None:
+            point = np.array(point)
+            return Vec3.are_perpendicular(self.normal_vector, point - self.p)
+        else:
+            return False
 
     def has_line(self, line=None):
         return (self.has_point(point=line.p) and
@@ -132,49 +135,62 @@ class Rectangle(Plane):
             ans = ans and q
         return ans
     def is_overlapping(self, other):
+        """ if all the vertices of one rectangle are inside another rect"""
         pass
 
     def has_point(self, point):
-        diag = np.abs(self.va + self.vb)
-        if super().has_point(point) and all(diag >= np.abs(point-self.p)):
+        f1 = self.edges[0].find_foot(point)
+        f2 = self.edges[1].find_foot(point)
+        if self.edges[0].has_point(f1) and self.edges[1].has_point(f2):
             return True
         else:
             return False
+
+    def intersect_line(self, line=None, p0=None, vd=None):
+        p = super().intersect_line(line=line, p0=p0, vd=vd)
+        if p is not None:
+            if self.has_point(p):
+                return p
+        return None
 
 
 class Sphere(object):
     """ Sphere with direction and angle """
 
-    def __init__(self, center, radius, axis_vector, angle=np.pi):
+    def __init__(self, center, radius, v_axis, angle=np.pi):
         self.center = np.array(center)
         self.radius = np.float(radius)
         if angle > 0 and angle <= np.pi:
             self.angle = angle
         else:
             raise ValueError()
-        self.axis_vector = np.array(axis_vector)
+        self.v_axis = np.array(v_axis)
 
     def has_point(self, point):
         v = point - self.center
         dist = np.linalg.norm(v)
         if (dist - self.radius) < np.finfo(float).eps:
-            costheta = np.dot(self.axis_vector, v) / (dist * self.radius)
-            if costheta < self.angle:
+            costheta = np.dot(self.v_axis, v) / (dist * self.radius)
+            if costheta < np.cos(self.angle):
                 return True
         return False
+
+    def tan_plane_at(self, point):
+        vn = point - self.center
+        return Plane(point, vn)
 
 
 class BarrelShell(object):
     """ Cylinder surface """
 
-    def __init__(self, axis_vector, radius, center):
-        self.axis_vector = np.array(axis_vector)
+    def __init__(self, v_axis, radius, center):
+        self.v_axis = np.array(v_axis)
         self.radius = radius
         # here center is on the bottom because this cylinder is directed
         self.center = center
-        self.length = np.linalg.norm(self.axis_vector)
-        self.unit_vector = Vec3.normalize(self.axis_vector)
-        self.axis = Segment(center, axis_vector)
+        self.length = np.linalg.norm(self.v_axis)
+        self.unit_vector = Vec3.normalize(self.v_axis)
+        self.axis = Segment(center, v_axis)
 
     def has_point(self, point):
         if type(point) is not np.ndarray:
@@ -186,4 +202,7 @@ class BarrelShell(object):
 
     def tan_plane_at(self, point):
         # TODO: calculate tangential plane for acoustics calculation
-        pass
+        l = Line(self.center, self.axis)
+        foot = l.find_foot(point)
+        vn = point - foot
+        return Plane(point, vn)

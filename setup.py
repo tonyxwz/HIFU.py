@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-setup(name='pyHIFU', version='1.0', packages=find_packages())
+setup(name='pyHIFU', version='0.1', packages=find_packages())
 
 # #!/usr/bin/env python
 # # -*- coding: utf-8 -*-

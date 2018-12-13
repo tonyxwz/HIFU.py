@@ -1,10 +1,12 @@
 import numpy as np
-from pyHIFU.geometric.vec3 import Vec3
+from .vec3 import Vec3
 
 
 class Line(object):
-    def __init__(self, p, d):
+    def __init__(self, p, d=None, p2=None):
         self.p = np.array(p)
+        if d is None:
+            d = p2 - self.p
         self.d = Vec3.normalize(d)
         self.unit_vector = self.d
         self._d_as_assigned = d
@@ -36,7 +38,10 @@ class Line(object):
         return plane.intersect_line(line=self)
 
     def has_point(self, point):
-        return all(np.cross(point-self.p, self.d) == 0)
+        if point is not None:
+            return all(np.cross(point-self.p, self.d) <= np.finfo(float).eps)
+        else:
+            return False
 
     def is_perpendicular(self, vector=None, line=None):
         if vector is None:
@@ -75,6 +80,13 @@ class Ray(Line):
         else:
             return False
 
+    def intersect_plane(self, plane):
+        p = super().intersect_plane(plane)
+        if p is not None:
+            if self.has_point(p):
+                return p
+        return None
+
 
 class Segment(Line):
     def __init__(self, p, d, l=None, **kwargs):
@@ -100,13 +112,3 @@ class Segment(Line):
             return True
         else:
             return False
-
-
-# Point is just np.ndarray shape = (3,)
-# class Point(np.ndarray):
-#     def __init__(self, array):
-#         super().__init__(array)
-#     def on_line(self, line):
-#         pass
-#     def on_plane(self, plane):
-#         pass
