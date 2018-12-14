@@ -1,20 +1,20 @@
 import numpy as np
 
 
-EPS = np.finfo(float).eps
+EPS = 5e-16
 
 class Vec3(object):
     # static methods manipulate a array
     @staticmethod
     def are_equal(a, b):
-        return all(np.abs(a - b) < EPS)
+        return all(np.abs(a - b) <= EPS)
 
     @staticmethod
     def are_parallel(a, b):
-        return all(np.cross(a, b) == 0)
+        return all(np.cross(a, b) <= EPS)
     @staticmethod
     def are_perpendicular(a, b):
-        return a.dot(b) == 0
+        return a.dot(b) <= EPS
 
     @staticmethod
     def normalize(v):
