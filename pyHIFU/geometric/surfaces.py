@@ -1,15 +1,16 @@
 import numpy as np
 from .vec3 import Vec3
 from .lines import Line, Ray, Segment
+from .curves import Ring
 
 
 class Plane(object):
     """ 
     All edges should be counter-clockwise
-    right hand cross product direction
+    right hand, cross product direction
     """
 
-    def __init__(self, p, n):
+    def __init__(self, p, n, **kw):
         self.p = np.array(p)
         self.normal_vector = Vec3.normalize(n)
         self._p_as_assigned = p
@@ -53,9 +54,6 @@ class Plane(object):
         return (self.has_point(point=line.p) and
                 line.is_perpendicular(vector=self.normal_vector))
 
-    def get_matrix(self):
-        pass
-
     def n_common_edge(self, other):
         """ return number of common edges """
         ans = 0
@@ -67,6 +65,7 @@ class Plane(object):
 
 class Circle(Plane):
     def __init__(self, center, radius, normal_vector, radius2=None):
+        # TODO: hollowed circle
         super().__init__(center, normal_vector)
         self.center = self.p
         self.radius = radius
@@ -74,6 +73,7 @@ class Circle(Plane):
             self.radius2 = radius2
         else:
             self.radius2 = radius
+        self.edges = [Ring(self.center, self.radius, self.normal_vector)]
 
     @property
     def area(self):
@@ -82,11 +82,6 @@ class Circle(Plane):
     @property
     def circumference(self):
         return 2 * np.pi * self.radius
-
-    @property
-    def edge(self):
-        # TODO: return the a shape of circle? really needed?
-        pass
 
     def __eq__(self, other):
         return (all(self.center == other.center) and
@@ -101,11 +96,36 @@ class Circle(Plane):
                 np.linalg.norm(np.array(point)-self.center) < self.radius)
 
 
-class Triangle(Plane):
-    pass
-
-
 class Polygon(Plane):
+    def __init__(self, p, vertices, edges, **kw):
+        self.vertices = vertices
+        self.edges = edges
+    
+    def __is_polygon(self):
+        """ prove the args of `__init__` can form a polygon """
+        pass
+
+    def has_point(self, p):
+        pass
+
+    def has_segment(self, s):
+        pass
+    
+    def is_containing(self, other):
+        """
+        if all the vertices of `other` are inside `self` AND
+        all the edges has no intersection point, then self is containing other.
+        """
+        ans = True
+        for v in other.vertices:
+            ans = ans and self.has_point(v)
+        for e in other.edges:
+            ans = ans and self.has_line(e)
+        return ans
+
+
+class Triangle(Polygon):
+    """ most simple polygon """
     pass
 
 
@@ -118,9 +138,11 @@ class Rectangle(Plane):
 
         self.edges.append(Segment(self.p, self.va))
         self.edges.append(Segment(self.p+self.va, self.vb))
-        self.edges.append(
-            Segment(self.p+self.va+self.vb, np.negative(self.va)))
+        self.edges.append(Segment(self.p+self.va+self.vb, np.negative(self.va)))
         self.edges.append(Segment(self.p+self.vb, np.negative(self.vb)))
+
+        self.vertices = [self.p, self.p+self.va,
+                         self.p+self.va+self.vb, self.p+self.vb]
 
     def __str__(self):
         return str(self.__dict__)
@@ -153,6 +175,9 @@ class Rectangle(Plane):
                 return p
         return None
 
+    def has_rect(self, other):
+        pass
+
 
 class Sphere(object):
     """ Sphere with direction and angle """
@@ -183,7 +208,7 @@ class Sphere(object):
 class BarrelShell(object):
     """ Cylinder surface """
 
-    def __init__(self, v_axis, radius, center):
+    def __init__(self, center, v_axis, radius):
         self.v_axis = np.array(v_axis)
         self.radius = radius
         # here center is on the bottom because this cylinder is directed
@@ -191,7 +216,9 @@ class BarrelShell(object):
         self.length = np.linalg.norm(self.v_axis)
         self.unit_vector = Vec3.normalize(self.v_axis)
         self.axis = Segment(center, v_axis)
-
+        self.edges = [Ring(self.center, self.radius, self.unit_vector),
+                      Ring(self.center + self.v_axis, self.radius, self.unit_vector)]
+        
     def has_point(self, point):
         if type(point) is not np.ndarray:
             point = np.array(point)
@@ -206,3 +233,10 @@ class BarrelShell(object):
         foot = l.find_foot(point)
         vn = point - foot
         return Plane(point, vn)
+    def n_common_edge(self, other):
+        """ return number of common edges """
+        ans = 0
+        for e1 in self.edges:
+            for e2 in other.edges:
+                ans += int(e1 == e2)
+        return ans

@@ -1,7 +1,7 @@
 import numpy as np
 from .vec3 import Vec3
 from .lines import Line, Ray, Segment
-from .surfaces import Plane, Circle, Sphere, Rectangle
+from .surfaces import Plane, Circle, Sphere, Rectangle, BarrelShell
 
 
 class Volume(list):
@@ -9,9 +9,16 @@ class Volume(list):
     General class for all geometric volumes such as ball, cylinder, cube
     not patient volume yet
     """
-    def __init__(self, sides_list, adj_mtx=None, shape_dict=None):
+    def __init__(self, sides_list, adj_mtx=None, shape_dict=None, **kw):
         super().__init__(sides_list)
-        self.adj_mtx = adj_mtx
+        if adj_mtx is None:
+            self.adj_mtx = np.eye(len(self))
+            for i, s1 in enumerate(self):
+                for j, s2 in enumerate(self):
+                    if s1.n_common_edge(s2):
+                        self.adj_mtx[i, j] = 1
+        else:
+            self.adj_mtx = adj_mtx
 
     def common_edge(self, id1, id2):
         return self.adj_mtx[id1, id2]
@@ -28,7 +35,6 @@ class Volume(list):
                 if f1 == f2:
                     r.append(f1.index)
         return r
-        
 
 
 class Ball(Volume):
@@ -37,8 +43,25 @@ class Ball(Volume):
 
 
 class Cylinder(Volume):
-    def __init__(self, radius, v_axis, length, radius2=None, v_axis2=None):
-        pass
+    """ can be also a hollowed cylinder by giving `radius1` and `v_axis2` """
+    def __init__(self, p, radius, v_axis, length=None):
+        # TODO: hollowed cylinder (radius2, vaxis2)
+        self.p = np.array(p)
+        self.radius = np.float(radius)
+        if length is None:
+            self.v_axis = np.array(v_axis)
+            self.length = np.linalg.norm(self.v_axis)
+        else:
+            self.length = np.float(length)
+            self.v_axis = Vec3.normalize(v_axis)*self.length
+        l = [
+            Circle(self.p, self.radius, self.v_axis),
+            Circle(self.p+self.v_axis, self.radius, self.v_axis),
+            BarrelShell(self.p, self.v_axis, self.radius)
+        ]
+        super().__init__(l)
+        
+
 
 
 class Cuboid(Volume):
@@ -57,7 +80,8 @@ class Cuboid(Volume):
             Rectangle(self.o1, self.c, self.b, index=2),
             Rectangle(self.o2, np.negative(self.a), np.negative(self.b), index=3),
             Rectangle(self.o2, np.negative(self.b), np.negative(self.c), index=4),
-            Rectangle(self.o2, np.negative(self.c), np.negative(self.a), index=5)]
+            Rectangle(self.o2, np.negative(self.c), np.negative(self.a), index=5)
+        ]
         #adjacency matrix of volume, items indication common edge
         adj_mtx = np.eye(6)
         # TODO calculate only half of the matrx because symmetry property
