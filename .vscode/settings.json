@@ -7,7 +7,27 @@
     ],
     "terminal.integrated.cursorBlinking": true,
     "terminal.integrated.shellArgs.windows": [],
-    // "python.pythonPath": "C:\\Users\\20175506\\AppData\\Local\\Continuum\\anaconda3\\envs\\pyHIFU\\python.exe",
-    "python.pythonPath": "/home/joey/Apps/miniconda3/envs/HIFU/bin/python"
+    // "python.pythonPath": "/home/joey/Apps/miniconda3/envs/HIFU/bin/python",
+    // "python.pythonPath": "C:\\Users\\tonyx\\AppData\\Local\\Programs\\Miniconda3\\envs\\HIFU\\python.exe",
+    "C_Cpp.dimInactiveRegions": false,
+    // "python.pythonPath": "C:\\Users\\tonyx\\AppData\\Local\\Programs\\Miniconda3\\envs\\HIFU\\python.exe",
+    "python.pythonPath": "${workspaceFolder}/HIFUenv/Scripts/python.exe",
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/.ipynb_checkpoints": true,
+        "**/*.egg-info": true,
+        "**/*.pyc": true,
+        "HIFUenv/": true
+    },
+    "python.unitTest.unittestArgs": [
+        "-v",
+        "-s",
+        "./pyHIFU/test",
+        "-p",
+        "test*.py"
+    ],
+    "python.unitTest.pyTestEnabled": false,
+    "python.unitTest.nosetestsEnabled": false,
+    "python.unitTest.unittestEnabled": true
 
 }
