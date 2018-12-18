@@ -6,11 +6,7 @@
         "venv"
     ],
     "terminal.integrated.cursorBlinking": true,
-    // "python.pythonPath": "/home/joey/Apps/miniconda3/envs/HIFU/bin/python",
-    // "python.pythonPath": "C:\\Users\\tonyx\\AppData\\Local\\Programs\\Miniconda3\\envs\\HIFU\\python.exe",
     "C_Cpp.dimInactiveRegions": false,
-    // "python.pythonPath": "C:\\Users\\tonyx\\AppData\\Local\\Programs\\Miniconda3\\envs\\HIFU\\python.exe",
-    "python.pythonPath": "C:\\tools\\Python\\Miniconda3\\envs\\HIFU\\python.exe",
     "files.exclude": {
         "**/__pycache__": true,
         "**/.ipynb_checkpoints": true,
@@ -27,11 +23,5 @@
     ],
     "python.unitTest.pyTestEnabled": false,
     "python.unitTest.nosetestsEnabled": false,
-    "python.unitTest.unittestEnabled": true,
-    "terminal.integrated.env.windows": {
-        "NUMBAPRO_CUDA_DRIVER": "C:\\Windows\\System32\\nvcuda.dll",
-        "NUMBAPRO_NVVM": "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v10.0\\nvvm\\bin",
-        "NUMBAPRO_LIBDEVICE": "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v10.0\\nvvm\\libdevice"
-    }
-
+    "python.unitTest.unittestEnabled": true
 }
