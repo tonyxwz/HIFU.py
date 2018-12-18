@@ -1,6 +1,6 @@
 import numpy as np
 from pyHIFU.io.config import readjson
-from pyHIFU.geometric.volume import Ball, Cuboid, Cylinder
+from pyHIFU.geometric.volumes import Ball, Cuboid, Cylinder
 
 SHAPE_FUNC_DICT = {'ball': Ball, 'cuboid': Cuboid, 'cylinder': Cylinder}
 

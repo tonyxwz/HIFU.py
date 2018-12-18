@@ -73,7 +73,7 @@ class Cuboid(Volume):
         self.b = np.array(b)
         self.c = np.array(c)
         self.o2 = self.o1 + self.a + self.b + self.c
-
+        # TODO make sure normal of sides directs outside
         sides_list = [
             Rectangle(self.o1, self.a, self.c, index=0),
             Rectangle(self.o1, self.b, self.a, index=1),

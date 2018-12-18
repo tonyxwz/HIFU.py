@@ -97,7 +97,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-HIFUenv/
+hifu.env/
 
 # Spyder project settings
 .spyderproject
