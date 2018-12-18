@@ -10,7 +10,7 @@
     // "python.pythonPath": "C:\\Users\\tonyx\\AppData\\Local\\Programs\\Miniconda3\\envs\\HIFU\\python.exe",
     "C_Cpp.dimInactiveRegions": false,
     // "python.pythonPath": "C:\\Users\\tonyx\\AppData\\Local\\Programs\\Miniconda3\\envs\\HIFU\\python.exe",
-    "python.pythonPath": "${workspaceFolder}/hifu.env/Scripts/python.exe",
+    "python.pythonPath": "C:\\tools\\Python\\Miniconda3\\envs\\HIFU\\python.exe",
     "files.exclude": {
         "**/__pycache__": true,
         "**/.ipynb_checkpoints": true,

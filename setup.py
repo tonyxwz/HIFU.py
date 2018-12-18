@@ -1,63 +1,74 @@
-from setuptools import setup, find_packages
+# from setuptools import setup, find_packages
 
-setup(name='pyHIFU', version='0.1', packages=find_packages())
+# setup(name='pyHIFU', version='0.1', packages=find_packages())
 
-# #!/usr/bin/env python
-# # -*- coding: utf-8 -*-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-# # Note: To use the 'upload' functionality of this file, you must:
-# #   $ pip install twine
+# Note: To use the 'upload' functionality of this file, you must:
+#   $ pip install twine
 
-# import io
-# import os
-# import sys
-# from shutil import rmtree
+import io
+import os
+import sys
+from shutil import rmtree
 
-# from setuptools import find_packages, setup, Command
+from setuptools import find_packages, setup, Command
 
-# # Package meta-data.
-# NAME = 'mypackage'
-# DESCRIPTION = 'My short description for my project.'
-# URL = 'https://github.com/me/myproject'
-# EMAIL = 'me@example.com'
-# AUTHOR = 'Awesome Soul'
-# REQUIRES_PYTHON = '>=3.6.0'
-# VERSION = None
+# Package meta-data.
+NAME = 'pyHIFU'
+DESCRIPTION = 'High Intensity Focused Ultrasound Simulation in Python'
+URL = 'https://github.com/tonyxwz/HIFY.py'
+EMAIL = ''
+AUTHOR = 'tonyxwz'
+REQUIRES_PYTHON = '>=3.6.0'
+VERSION = 0.1
 
-# # What packages are required for this module to be executed?
-# REQUIRED = [
-#     # 'requests', 'maya', 'records',
-# ]
+# What packages are required for this module to be executed?
+REQUIRED = [
+    'numpy', 'numba'
+]
 
-# # What packages are optional?
-# EXTRAS = {
-#     # 'fancy feature': ['django'],
-# }
+# What packages are optional?
+EXTRAS = {
+    'plotting': ['matplotlib', 'vtk'],
+}
 
-# # The rest you shouldn't have to touch too much :)
-# # ------------------------------------------------
-# # Except, perhaps the License and Trove Classifiers!
-# # If you do change the License, remember to change the Trove Classifier for that!
+# The rest you shouldn't have to touch too much :)
+# ------------------------------------------------
+# Except, perhaps the License and Trove Classifiers!
+# If you do change the License, remember to change the Trove Classifier for that!
 
-# here = os.path.abspath(os.path.dirname(__file__))
+here = os.path.abspath(os.path.dirname(__file__))
 
-# # Import the README and use it as the long-description.
-# # Note: this will only work if 'README.md' is present in your MANIFEST.in file!
-# try:
-#     with io.open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
-#         long_description = '\n' + f.read()
-# except FileNotFoundError:
-#     long_description = DESCRIPTION
+# Import the README and use it as the long-description.
+# Note: this will only work if 'README.md' is present in your MANIFEST.in file!
+try:
+    with io.open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
+        long_description = '\n' + f.read()
+except FileNotFoundError:
+    long_description = DESCRIPTION
 
-# # Load the package's __version__.py module as a dictionary.
-# about = {}
-# if not VERSION:
-#     with open(os.path.join(here, NAME, '__version__.py')) as f:
-#         exec(f.read(), about)
-# else:
-#     about['__version__'] = VERSION
+# Load the package's __version__.py module as a dictionary.
+about = {}
+if not VERSION:
+    with open(os.path.join(here, NAME, '__version__.py')) as f:
+        exec(f.read(), about)
+else:
+    about['__version__'] = VERSION
 
-
+setup(
+    name=NAME,
+    version=VERSION,
+    packages=find_packages(),
+    description=DESCRIPTION,
+    license='GPLv2',
+    author=AUTHOR,
+    long_description=long_description,
+    long_description_content_type='text/markdown',
+    install_requires=REQUIRED,
+    extras_require=EXTRAS
+)
 # class UploadCommand(Command):
 #     """Support setup.py upload."""
 
@@ -103,7 +114,6 @@ setup(name='pyHIFU', version='0.1', packages=find_packages())
 #     long_description=long_description,
 #     long_description_content_type='text/markdown',
 #     author=AUTHOR,
-#     author_email=EMAIL,
 #     python_requires=REQUIRES_PYTHON,
 #     url=URL,
 #     packages=find_packages(exclude=('tests',)),
@@ -125,7 +135,7 @@ setup(name='pyHIFU', version='0.1', packages=find_packages())
 #         'Programming Language :: Python :: 3',
 #         'Programming Language :: Python :: 3.6',
 #         'Programming Language :: Python :: Implementation :: CPython',
-#         'Programming Language :: Python :: Implementation :: PyPy'
+#         # 'Programming Language :: Python :: Implementation :: PyPy'
 #     ],
 #     # $ setup.py publish support.
 #     cmdclass={
