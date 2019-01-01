@@ -1,7 +1,7 @@
 import numpy as np
-from .vec3 import Vec3
-from .lines import Line, Ray, Segment
-from .surfaces import Plane, Circle, Sphere, Rectangle, BarrelShell
+from pyHIFU.geometric.vec3 import Vec3
+from pyHIFU.geometric.lines import Line, Ray, Segment
+from pyHIFU.geometric.surfaces import Plane, Circle, Sphere, Rectangle, BarrelShell
 
 
 class Volume(list):
@@ -32,8 +32,9 @@ class Volume(list):
         r = list()
         for f1 in self:
             for f2 in volume2:
-                if f1 == f2:
-                    r.append(f1.index)
+                if type(f1) is type(f2):
+                    if f1 == f2:
+                        r.append(f1.index)
         return r
 
 
@@ -44,7 +45,7 @@ class Ball(Volume):
 
 class Cylinder(Volume):
     """ can be also a hollowed cylinder by giving `radius1` and `v_axis2` """
-    def __init__(self, p, radius, v_axis, length=None):
+    def __init__(self, p, radius, v_axis, radius2=None, length=None):
         # TODO: hollowed cylinder (radius2, vaxis2)
         self.p = np.array(p)
         self.radius = np.float(radius)
@@ -55,10 +56,15 @@ class Cylinder(Volume):
             self.length = np.float(length)
             self.v_axis = Vec3.normalize(v_axis)*self.length
         l = [
-            Circle(self.p, self.radius, self.v_axis),
-            Circle(self.p+self.v_axis, self.radius, self.v_axis),
-            BarrelShell(self.p, self.v_axis, self.radius)
+            Circle(self.p, self.radius, self.v_axis, index=0),
+            Circle(self.p+self.v_axis, self.radius, self.v_axis, index=1),
+            BarrelShell(self.p, self.v_axis, self.radius, index=2)
         ]
+        if radius2 is not None:
+            self.radius2 = radius2
+            if self.radius2 > self.radius:
+                raise Exception("radius2 should be smaller than radius1")
+            l.append(BarrelShell(self.p, self.v_axis, self.radius2, index=3))
         super().__init__(l)
         
 
@@ -101,5 +107,6 @@ class Cuboid(Volume):
 
 
 if __name__ == '__main__':
-    c = Cuboid([0, 0, 0], [5, 0, 0], [0, 3, 0], [0, 0, 4])
+    # c = Cuboid([0, 0, 0], [5, 0, 0], [0, 3, 0], [0, 0, 4])
+    c = Cylinder([0,0,0], 5, [0,0,5], radius2=3)
     print(c)

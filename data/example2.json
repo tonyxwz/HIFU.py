@@ -55,12 +55,27 @@
 
             },
             "geometry": {
-                "shape_type": "cuboid",
+                "shape_type": "cylinder",
                 "parameters": {
-                    "o": [-2,14,-2],
-                    "a": [4,0,0],
-                    "b": [0,4,0],
-                    "c": [0,0,4]
+                    "p": [0,0,0],
+                    "radius": 7,
+                    "v_axis": [0,18,0],
+                    "radius2": 3
+                }
+            }
+        },
+        {
+            "id": 4,
+            "tissue_type": "bone",
+            "physics":{
+
+            },
+            "geometry": {
+                "shape_type": "cylinder",
+                "parameters": {
+                    "p": [0,0,0],
+                    "radius": 3,
+                    "v_axis": [0,18,0]
                 }
             }
         }

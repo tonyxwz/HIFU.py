@@ -64,17 +64,18 @@ class Plane(object):
 
 
 class Circle(Plane):
-    def __init__(self, center, radius, normal_vector, radius2=None):
+    def __init__(self, center, radius, normal_vector, radius2=None, **kw):
         # TODO: hollowed circle
         super().__init__(center, normal_vector)
         self.center = self.p
         self.radius = radius
+        self.edges = [Ring(self.center, self.radius, self.normal_vector)]
         if radius2 is not None:
             self.radius2 = radius2
+            self.edges.append(Ring(self.center, self.radius2, self.normal_vector))
         else:
-            self.radius2 = radius
-        self.edges = [Ring(self.center, self.radius, self.normal_vector)]
-
+            self.radius2 = 0
+        
     @property
     def area(self):
         return np.pi * np.power(self.radius, 2)
@@ -86,14 +87,16 @@ class Circle(Plane):
     def __eq__(self, other):
         return (all(self.center == other.center) and
                 all(self.normal_vector == other.normal_vector) and
-                self.radius == other.radius)
+                self.radius == other.radius and
+                self.radius2 == other.radius2)
 
     def has_point(self, point):
         # a point is in the circle if the point is on th plane and
         # the distance to origin is less than radius
         # TODO: support for ellipse
         return (super().has_point(point) and
-                np.linalg.norm(np.array(point)-self.center) < self.radius)
+                np.linalg.norm(np.array(point)-self.center) <= self.radius and
+                np.linalg.norm(np.array(point)-self.center) >= self.radius2)
 
 
 class Polygon(Plane):
@@ -208,7 +211,7 @@ class Sphere(object):
 class BarrelShell(object):
     """ Cylinder surface """
 
-    def __init__(self, center, v_axis, radius):
+    def __init__(self, center, v_axis, radius, **kw):
         self.v_axis = np.array(v_axis)
         self.radius = radius
         # here center is on the bottom because this cylinder is directed
@@ -218,7 +221,8 @@ class BarrelShell(object):
         self.axis = Segment(center, v_axis)
         self.edges = [Ring(self.center, self.radius, self.unit_vector),
                       Ring(self.center + self.v_axis, self.radius, self.unit_vector)]
-        
+        self.index = kw["index"]
+
     def has_point(self, point):
         if type(point) is not np.ndarray:
             point = np.array(point)
@@ -240,3 +244,9 @@ class BarrelShell(object):
             for e2 in other.edges:
                 ans += int(e1 == e2)
         return ans
+
+    def __eq__(self, other):
+        if type(other) is BarrelShell:
+            return (self.radius == other.radius and 
+                    self.axis == other.axis)
+        else: return False
