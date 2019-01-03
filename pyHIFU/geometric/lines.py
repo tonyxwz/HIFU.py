@@ -7,6 +7,9 @@ class Line(object):
         self.p = np.array(p)
         if d is None:
             d = p2 - self.p
+        else:
+            p2 = self.p + d
+        self.p2 = np.array(p2)
         self.d = Vec3.normalize(d)
         self.unit_vector = self.d
         self._d_as_assigned = d
@@ -32,7 +35,29 @@ class Line(object):
         return {"p": self.p, "d": self.d}
 
     def intersect_line(self, line2):
-        pass
+        # check can intersect
+        vn = np.cross(self.d, line2.d)
+        # self and line2 are not parallel
+        if np.any(vn):
+            v1 = self.p - line2.p
+            v2 = self.p2 - line2.p2
+            # self and line2 are on the same plane (can intersect)
+            if np.dot(vn, v1) == 0 and np.dot(vn, v2) == 0:
+                # find the right coor component to use
+                d1 = self.d
+                d2 = line2.d
+                for i in range(len(d1)):
+                    if not d1[i] == 0:
+                        for j in range(len(d2)):
+                            if not d2[j] == 0:
+                                if not i == j:
+                                    break
+                k1 = line2.p[i]*line2.d[j] - line2.p[j]*line2.d[i]
+                k2 = self.p[i]*line2.d[j] - self.p[j]*line2.d[i]
+                k3 = self.d[i]*line2.d[j] - self.d[j]*line2.d[i]
+                t = (k1 - k2 ) / k3
+                return self.to_coordinate(t)
+        return None
 
     def intersect_plane(self, plane):
         return plane.intersect_line(line=self)
@@ -49,7 +74,7 @@ class Line(object):
         return self.d.dot(vector) == 0
 
     def is_parallel(self, other):
-        return Vec3.are_equal(self.d, other.d)
+        return not np.any(np.cross(self.d, other.d))
 
     def find_foot(self, point):
         """ food in perpendicular """

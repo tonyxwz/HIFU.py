@@ -62,6 +62,11 @@ class Plane(object):
                 ans += int(e1 == e2)
         return ans
 
+    def distance_to_point(self, point):
+        v1 = self.p - point
+        d = np.abs(np.dot(v1, self.normal_vector))
+        return d
+
 
 class Circle(Plane):
     def __init__(self, center, radius, normal_vector, radius2=None, **kw):
@@ -221,7 +226,8 @@ class BarrelShell(object):
         self.axis = Segment(center, v_axis)
         self.edges = [Ring(self.center, self.radius, self.unit_vector),
                       Ring(self.center + self.v_axis, self.radius, self.unit_vector)]
-        self.index = kw["index"]
+        if "index" in kw.keys():
+            self.index = kw["index"]
 
     def has_point(self, point):
         if type(point) is not np.ndarray:
@@ -250,3 +256,21 @@ class BarrelShell(object):
             return (self.radius == other.radius and 
                     self.axis == other.axis)
         else: return False
+
+    def intersect_line(self, line):
+        vn = np.cross(line.d, self.unit_vector)
+        pl = Plane(line.p, vn)
+        d = pl.distance_to_point(self.center)
+        # l2: 
+        l2 = Segment(self.center+pl.normal_vector*d, self.v_axis)
+        if not pl.has_line(l2):
+            l2 = Segment(self.center-pl.normal_vector*d, self.v_axis)
+
+        p_center = l2.intersect_line(line)
+        d2 = np.sqrt(self.radius**2 - d**2)
+        costheta = np.dot(self.unit_vector, line.d)
+        sintheta = np.sqrt(1-costheta**2)
+        t = np.abs(d2 / sintheta)
+        p1 = p_center - line.unit_vector * t
+        return p1
+
