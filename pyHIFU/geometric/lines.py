@@ -1,6 +1,6 @@
 import numpy as np
 from .vec3 import Vec3
-
+from .vec3 import EPS
 
 class Line(object):
     def __init__(self, p, d=None, p2=None):
@@ -64,7 +64,7 @@ class Line(object):
 
     def has_point(self, point):
         if point is not None:
-            return all(np.cross(point-self.p, self.d) <= np.finfo(float).eps)
+            return all(np.cross(point-self.p, self.d) <= EPS)
         else:
             return False
 

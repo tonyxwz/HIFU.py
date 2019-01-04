@@ -1,7 +1,7 @@
 import numpy as np
 
 
-EPS = 5e-16
+EPS = 1e-15
 
 class Vec3(object):
     # static methods manipulate a array

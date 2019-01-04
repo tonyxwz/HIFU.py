@@ -243,6 +243,7 @@ class BarrelShell(object):
         foot = l.find_foot(point)
         vn = point - foot
         return Plane(point, vn)
+        
     def n_common_edge(self, other):
         """ return number of common edges """
         ans = 0
