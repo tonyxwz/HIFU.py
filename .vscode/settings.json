@@ -17,7 +17,7 @@
     "python.unitTest.unittestArgs": [
         "-v",
         "-s",
-        "./pyHIFU/test",
+        "./pyHIFU/tests",
         "-p",
         "test*.py"
     ],
