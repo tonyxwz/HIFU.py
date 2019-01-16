@@ -13,6 +13,7 @@ class Plane(object):
     def __init__(self, p, n, **kw):
         self.p = np.array(p)
         self.normal_vector = Vec3.normalize(n)
+        self.n = self.normal_vector
         self._p_as_assigned = p
         self._n_as_assigned = n
         self.abcd = np.ones(4)
@@ -211,6 +212,10 @@ class Sphere(object):
     def tan_plane_at(self, point):
         vn = point - self.center
         return Plane(point, vn)
+
+    def r_to_xyz(self, r):
+        # intersection point of vector r with self
+        return
 
 
 class BarrelShell(object):

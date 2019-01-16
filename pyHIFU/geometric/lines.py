@@ -88,6 +88,28 @@ class Line(object):
         foot = self.find_foot(point)
         return np.linalg.norm(foot - point)
 
+    def perpendicularDirection(self):
+        r_point = np.array([0,0,0])
+        for c1 in range(len(self.d)):
+            if not self.d[c1] == 0:
+                # component 1 is not zero
+                for c2 in range(c1+1, len(self.d)):
+                    if not self.d[c2] == 0:
+                        # component 2 is not zero
+                        r_point[c1] = -self.d[c2]
+                        r_point[c2] = -self.d[c1]
+                        return r_point
+                # 2 components are zero, then set "next" component to 1
+                r_point[(c1 + 1) % 3] = 1
+                return r_point
+        return None # sth wrong
+
+    def rotate(self, axis, theta):
+        return np.dot(Vec3.rotation_matrix(axis, theta), self)
+
+    
+
+
 
 class Ray(Line):
     def __init__(self, p, d, **kwargs):
