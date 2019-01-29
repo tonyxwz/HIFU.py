@@ -81,6 +81,8 @@ class Circle(Plane):
             self.edges.append(Ring(self.center, self.radius2, self.normal_vector))
         else:
             self.radius2 = 0
+        if "index" in kw:
+            self.index = kw['index']
         
     @property
     def area(self):
@@ -143,7 +145,8 @@ class Rectangle(Plane):
         super().__init__(p, np.cross(va, vb))
         self.va = np.array(va)
         self.vb = np.array(vb)
-        self.index = kw['index']
+        if "index" in kw:
+            self.index = kw['index']
 
         self.edges.append(Segment(self.p, self.va))
         self.edges.append(Segment(self.p+self.va, self.vb))
