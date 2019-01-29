@@ -1,0 +1,28 @@
+{
+    "init_medium": {
+        "p": [0.05, 0, 0],
+        "n": [1, 0, 0]
+    },
+    "medium_list": [
+    ],
+
+    "transducer":{
+        "sphere_configs": {
+            "center": [0, 0, 0],
+            "radius": 3.5e-3,
+            "v_axis": [0, 1, 0],
+            "angle": 0.2617993877991494
+        },
+        "nature_focus": [0.14, 0, 0],
+        "actual_focus": [0.17, 0, 0],
+        "focus_diameter": 2,
+        "frequency": 1.4e6,
+        "element_configs": {
+            "trident_angle": 1e-2,
+            "n_rays": 3,
+            "theta_max": 0.5235987755982988,
+            "radius": 3.5e-3,
+            "power": 40
+        }
+    }
+}
