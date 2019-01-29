@@ -89,7 +89,7 @@ class Line(object):
         return np.linalg.norm(foot - point)
 
     def perpendicularDirection(self):
-        r_point = np.array([0,0,0])
+        r_point = np.array([0.0,0.0,0.0])
         for c1 in range(len(self.d)):
             if not self.d[c1] == 0:
                 # component 1 is not zero

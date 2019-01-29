@@ -59,3 +59,10 @@ class Vec3(object):
         from scipy.linalg import expm, norm
         from numpy import cross, eye, dot
         return expm(cross(eye(3), axis/norm(axis)*theta))
+
+    @staticmethod
+    def angle_between(v1, v2):
+        v1 = Vec3.normalize(v1)
+        v2 = Vec3.normalize(v2)
+        costheta = np.dot(v1, v2)
+        return np.arccos(costheta)
