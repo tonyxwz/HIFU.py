@@ -13,7 +13,7 @@ def plot_transducer(T, ax):
     X = k[:,0]
     Y = k[:,1]
     Z = k[:,2]
-    ax.scatter(X, Y, Z, color="r")
+    ax.scatter(X, Y, Z, s=1, color="r")
     ax.scatter(*T.nature_focus, color="teal")
     X = np.append(X, T.nature_focus[0])
     Y = np.append(Y, T.nature_focus[1])
@@ -39,15 +39,15 @@ def plot_TElements(te, ax):
     for tr in te:
         xyz = np.concatenate((tr.pow_ray.p, tr.pow_ray.end))
         xyz = xyz.reshape((2,3))
-        ax.plot(xyz[:,0], xyz[:,1], xyz[:,2], color="m")
+        ax.plot(xyz[:,0], xyz[:,1], xyz[:,2], linewidth=0.5, color="m")
 
         xyz = np.concatenate((tr.aux_ray1.p, tr.aux_ray1.end))
         xyz = xyz.reshape((2,3))
-        ax.plot(xyz[:,0], xyz[:,1], xyz[:,2], '--', color="g")
+        ax.plot(xyz[:,0], xyz[:,1], xyz[:,2], '--', linewidth=0.5, color="g")
         
         xyz = np.concatenate((tr.aux_ray2.p, tr.aux_ray2.end))
         xyz = xyz.reshape((2,3))
-        ax.plot(xyz[:,0], xyz[:,1], xyz[:,2], '--', color="g")
+        ax.plot(xyz[:,0], xyz[:,1], xyz[:,2], '--', linewidth=0.5, color="g")
 
 def plot_boundary(pl, ax):
     x = pl.p[0]
@@ -76,11 +76,15 @@ def plot_box(b, ax, title=""):
     
     if len(title):
         ax.set_title(title)
-        ax.set_xlim(b.o1[0]-1, b.o2[0]+1)
+        rangex = b.o2[0] - b.o1[0]
+        rangey = b.o2[1] - b.o1[1]
+        rangez = b.o2[2] - b.o1[2]
+
+        ax.set_xlim(b.o1[0]-0.3*rangex, b.o1[0]+1.3*rangex)
         ax.set_xlabel("x (m)")
-        ax.set_ylim(b.o1[1]-1, b.o2[1]+1)
+        ax.set_ylim(b.o1[1]-0.3*rangey, b.o1[1]+1.3*rangey)
         ax.set_ylabel("y (m)")
-        ax.set_zlim(b.o1[2]-1, b.o2[2]+1)
+        ax.set_zlim(b.o1[2]-0.3*rangez, b.o1[2]+1.3*rangez)
         ax.set_zlabel("z (m)")
 
 
@@ -96,3 +100,8 @@ def plot_trident(tr, ax):
     xyz = np.concatenate((tr.aux_ray2.p, tr.aux_ray2.end))
     xyz = xyz.reshape((2,3))
     ax.plot(xyz[:,0], xyz[:,1], xyz[:,2], '--', color="g")
+
+def plot_reflection(tr, interface, ax):
+    # TODO: the reflection progress of one transducer on one interface
+    # also give resulted shear ray and longitudinal ray different color
+    pass
