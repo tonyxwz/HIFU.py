@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import seaborn
 from mpl_toolkits.mplot3d import Axes3D
 import mpl_toolkits.mplot3d as mp3d
-
+from random import random
 
 def plot_transducer(T, ax):
     # fig = plt.figure()
@@ -36,7 +36,6 @@ def plot_transducer(T, ax):
 def plot_TElements(te, ax):
     # fig = plt.figure()
     # ax = fig.gca(projection='3d')
-
     for tr in te:
         xyz = np.concatenate((tr.pow_ray.p, tr.pow_ray.end))
         xyz = xyz.reshape((2,3))
@@ -62,3 +61,38 @@ def plot_boundary(pl, ax):
 
     face.set_facecolor((0, 0, 1, alpha))
     ax.add_collection3d(face)
+
+def plot_box(b, ax, title=""):
+    alpha = 0.3
+    
+    for face in b:
+        # face: rectangle
+        vertices = list()
+        for edge in face.edges:
+            vertices.append(edge.start)
+        face = mp3d.art3d.Poly3DCollection([vertices], alpha=alpha, linewidth=1)
+        face.set_facecolor((random(), random(), random(), alpha))
+        ax.add_collection3d(face)
+    
+    if len(title):
+        ax.set_title(title)
+        ax.set_xlim(b.o1[0]-1, b.o2[0]+1)
+        ax.set_xlabel("x (m)")
+        ax.set_ylim(b.o1[1]-1, b.o2[1]+1)
+        ax.set_ylabel("y (m)")
+        ax.set_zlim(b.o1[2]-1, b.o2[2]+1)
+        ax.set_zlabel("z (m)")
+
+
+def plot_trident(tr, ax):
+    xyz = np.concatenate((tr.pow_ray.p, tr.pow_ray.end))
+    xyz = xyz.reshape((2,3))
+    ax.plot(xyz[:,0], xyz[:,1], xyz[:,2], color="m")
+
+    xyz = np.concatenate((tr.aux_ray1.p, tr.aux_ray1.end))
+    xyz = xyz.reshape((2,3))
+    ax.plot(xyz[:,0], xyz[:,1], xyz[:,2], '--', color="g")
+    
+    xyz = np.concatenate((tr.aux_ray2.p, tr.aux_ray2.end))
+    xyz = xyz.reshape((2,3))
+    ax.plot(xyz[:,0], xyz[:,1], xyz[:,2], '--', color="g")
