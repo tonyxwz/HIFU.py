@@ -106,8 +106,13 @@ class Line(object):
 
     def rotate(self, axis, theta):
         return np.dot(Vec3.rotation_matrix(axis, theta), self)
-
     
+    def xyz_to_t(self, xyz, check=False):
+        return (xyz[0] - self.p[0]) / self.d[0]
+
+    def projection_xy_plane(self):
+        # TODO
+        pass
 
 
 
@@ -129,9 +134,8 @@ class Ray(Line):
 
     def intersect_plane(self, plane):
         p = super().intersect_plane(plane)
-        if p is not None:
-            if self.has_point(p):
-                return p
+        if (p is not None) and self.has_point(p):
+            return p
         return None
 
 

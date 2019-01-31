@@ -1,23 +1,117 @@
 import numpy as np
 from pyHIFU.io.config import readjson
+from pyHIFU.geometric.surfaces import Plane
 from pyHIFU.geometric.volumes import Ball, Cuboid, Cylinder
+from pyHIFU.physics import LIQUID, SOLID, SHEAR, LONGITUDINAL
 
 SHAPE_FUNC_DICT = {'ball': Ball, 'cuboid': Cuboid, 'cylinder': Cylinder}
 
+class Material(object):
+    """ only physics properties here """
+    def __init__(self, material_name=None, state=SOLID, density=None, 
+            cL=None, cS=None,
+            attenuationL=None, attenuationS=None,
+            absorption=None, thermal_conductivity=None, heat_capacity=None, **kw):
+        self.material_name = material_name
+        self.state = state
+        self.density = density
+        self.c = np.array([cL])  # velocity
+        self.attenuation = np.array([attenuationL])
+        if self.state == SOLID:
+            # SOLID == 1
+            # self.c[SHEAR], self.c[LONGITUDINAL]
+            self.c.append(cS)
+            self.attenuation.append(attenuationS)
+        self.absorption = absorption
+        self.thermal_conductivity = thermal_conductivity  #k
+        self.heat_capacity = heat_capacity  #cp
 
-class Medium(object):
-    """ Medium """
-    """ def __init__(self, type=None, name=None,
-            speed=None, density=None, attenuation=None, absorption=None,
-            frequency=None, faces=None, adj_mtx=None, config_file=None,
-            **kwargs): """
+    
+    @property
+    def Z(self):  # impedence z = c * rho
+        d = self.c * self.density
+        return d
 
-    def __init__(self, phyinfo=None, geoinfo=None, **kw):
-        # TODO: initialize physics info
-        shape_type = geoinfo['shape_type']
-        # print("Medium::geoinfo[]:", geoinfo['parameters'])
-        self.shape = SHAPE_FUNC_DICT[shape_type](**geoinfo['parameters'])
-        self.index = kw['index']
+    def FSolvePars(self, ray):
+        """
+        < Theoretical stuff for reference II >
+        Calculates the wave coefficients
+        """
+        wave_type = ray.wave_type
+        speed = self.c[wave_type]
+        omega = ray.angular_frequency
+        k = omega / speed
+        alpha = self.attenuation[wave_type]
+        rho = self.density
+
+        C = omega**2*rho/(alpha**2+ k**2)
+        D = np.sqrt(2)*C/(speed * np.sqrt(rho))
+        p_1 = D**2-C
+        p_2 = np.sqrt(C**2-p_1**2)/omega
+        return p_1, p_2
+
+    
+
+class Medium(Material):
+    def __init__(self, material_name=None, state=None, density=None,
+            cL=None, cS=None,
+            attenuationL=None, attenuationS=None,
+            absorption=None, thermal_conductivity=None, heat_capacity=None,
+            med_name=None, med_idx=None,
+            geoinfo=None, is_init_med=False, **kw):
+
+        super().__init__(material_name=material_name, state=state, density=density,
+                         cL=cL, cS=cS,
+                         attenuationL=attenuationL, attenuationS=attenuationS,
+                         absorption=absorption, thermal_conductivity=thermal_conductivity, heat_capacity=heat_capacity)
+        self.idx = med_idx
+        self.name = med_name
+        if is_init_med:
+            """ give the boundary """
+            pass
+        else:
+            shape_type = geoinfo['shape_type']
+            self.shape = SHAPE_FUNC_DICT[shape_type](**geoinfo['parameters'])
+    
+    
+    @staticmethod
+    def create_markoil(markoil_parameter):
+        return Medium(**markoil_parameter)
+
+    @staticmethod
+    def create_muscle(muscle_parameter):
+        return Medium(**muscle_parameter)
+
+    @staticmethod
+    def create_bone(bone_parameter):
+        return Medium(**bone_parameter)
+
+    @staticmethod
+    def create_liquid(liquid_parameter):
+        return Medium(**liquid_parameter)
+    @staticmethod
+    def create_solid(solid_parameter):
+        return Medium(**solid_parameter)
+    
+
+class InitMedium(Material):
+    """ Initial medium e.g. markoil and lossless
+    """
+    def __init__(self, material_name=None, state=None, density=None,
+            cL=None, cS=None,
+            attenuationL=None, attenuationS=None,
+            absorption=None, thermal_conductivity=None, heat_capacity=None,
+            med_name=None, med_idx=0,
+            p=[6,0,0], n=[1,0,0], **kw):
+
+        super().__init__(material_name=material_name, state=state, density=density,
+                         cL=cL, cS=cS,
+                         attenuationL=attenuationL, attenuationS=attenuationS,
+                         absorption=absorption, thermal_conductivity=thermal_conductivity, heat_capacity=heat_capacity)
+        self.boundary = Plane(p, n)
+        self.is_initial = True
+        self.shape = [self.boundary]  # in order to be compatible with Medium
+
 
 
 class MediaComplex(list):
@@ -29,17 +123,35 @@ class MediaComplex(list):
     # def __init__(self, media_list, adj_mtx):
     def __init__(self, config_json=None, config_file_path=None):
         super().__init__()
-        if config_json == None:
+        if config_json is None:
             config_json = readjson(json_path=config_file_path)
-        self.__build(config_json["medium_list"])
+        self.__construct_init_medium(config_json["init_medium"])
+        self.__construct_other_media(config_json["medium_list"])
         # self.adj_mtx = np.eye(len(self))
 
-    def __build(self, med_list_json):
+    def __construct_init_medium(self, init_medium_config):
+        material_name = "markoil"
+        state = LIQUID
+        density = 1070
+        cL = 1430
+        attenuationL = 1.04
+        absorption=1.04
+        thermal_conductivity=0.5
+        heat_capacity=4200
+
+        # config should contain the  information of an infinite plane
+        init_med = InitMedium(material_name=material_name, state=state, 
+                              density=density, cL=cL, attenuationL=attenuationL, absorption=absorption,
+                              thermal_conductivity=thermal_conductivity, heat_capacity=heat_capacity,
+                              **init_medium_config)
+        self.append(init_med)
+
+    def __construct_other_media(self, med_list_json):
         for item in med_list_json:
             phyinfo = item["physics"]
             geoinfo = item["geometry"]
             n = len(self)
-            self.append(Medium(phyinfo=phyinfo, geoinfo=geoinfo, index=n))
+            self.append(Medium(**phyinfo, geoinfo=geoinfo, med_idx=n))
         
         # adj_mtx[i,j] = [1,2] : 1,2 are the indices of the faces of self[i]
         # adjacent to self[j]
@@ -67,6 +179,13 @@ class MediaComplex(list):
             if side_idx in v:
                 r.append(i)
         return r
+
+    def find_next_init(self):
+        """ not necessary any more """
+        for i,v in enumerate(self):
+            for j, f in enumerate(v):
+               if self[0].boundary == f:
+                   return i,j
 
 
 if __name__ == "__main__":

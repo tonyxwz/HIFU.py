@@ -25,7 +25,7 @@ class Plane(object):
         return (Vec3.are_perpendicular(self.p - other.p, self.normal_vector) and
                 Vec3.are_equal(self.normal_vector, other.normal_vector))
 
-    def intersect_line(self, line=None, p0=None, vd=None):
+    def intersect_line(self, line=None, p0=None, vd=None, require_t=False):
         """ intersection point with a line """
         if line is not None:
             if (p0 is not None) or (vd is not None):
@@ -39,7 +39,10 @@ class Plane(object):
             return None
         else:
             t = self.normal_vector.dot(self.p - line.p) / b
-            return line.to_coordinate(t)
+            if require_t:
+                return t
+            else:
+                return line.to_coordinate(t)
 
     def intersect_plane(self, plane2):
         return "line"
@@ -180,8 +183,8 @@ class Rectangle(Plane):
         else:
             return False
 
-    def intersect_line(self, line=None, p0=None, vd=None):
-        p = super().intersect_line(line=line, p0=p0, vd=vd)
+    def intersect_line(self, line=None, p0=None, vd=None, require_t=False):
+        p = super().intersect_line(line=line, p0=p0, vd=vd, require_t=require_t)
         if p is not None:
             if self.has_point(p):
                 return p
