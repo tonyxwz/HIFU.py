@@ -23,6 +23,5 @@
     ],
     "python.unitTest.pyTestEnabled": false,
     "python.unitTest.nosetestsEnabled": false,
-    "python.unitTest.unittestEnabled": true,
-    "python.pythonPath": "C:\\Users\\20175506\\AppData\\Local\\Continuum\\anaconda3\\envs\\pyHIFU\\python.exe"
+    "python.unitTest.unittestEnabled": true
 }
