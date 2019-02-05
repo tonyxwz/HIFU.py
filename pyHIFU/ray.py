@@ -9,7 +9,17 @@ from pyHIFU.physics import LONGITUDINAL, SHEAR, SOLID, LIQUID
 class Ray(GeoRay):
     def __init__(self, start=None, direction=None, wave_type=LONGITUDINAL, medium=None):
         super().__init__(start, direction)
+        try: x_inv = 1 / self.d[0]
+        except ZeroDivisionError: x_inv = np.inf
         
+        try: y_inv = 1 / self.d[1]
+        except ZeroDivisionError: y_inv = np.inf
+
+        try: z_inv = 1 / self.d[2]
+        except ZeroDivisionError: z_inv = np.inf
+
+        self.d_inv = np.array([x_inv, y_inv, z_inv])
+
         self.wave_type = wave_type
         
         self.medium = medium  # medium instance
@@ -21,12 +31,23 @@ class Ray(GeoRay):
         """
         pass
 
-    def set_end(self, end):
+    @property
+    def end(self):
+        return self._end
+    @end.setter
+    def end(self, end):
         if not self.terminated:
-            self.end = np.array(end)
+            self._end = np.array(end)
             self.terminated = True
         else:
             raise Exception("Ray is already terminated")
+    @property
+    def endt(self):
+        """ end of ray in terms of distance travelled on the ray """
+        if self.terminated:
+            return (self.end[0]-self.start[0]) / self.d[0]
+        else:
+            raise Exception("Ray is not terminated")
 
 
     # @property
@@ -100,7 +121,7 @@ class Trident(object):
                  start_aux2, dire_aux2,
                  I0, len0, frequency, initial_phase,
                  el_id=None, ray_id=None, medium=None,
-                 wave_type=LONGITUDINAL):
+                 wave_type=LONGITUDINAL, bundle_identifier=""):
             # medium)
         self.wave_type = wave_type
 
