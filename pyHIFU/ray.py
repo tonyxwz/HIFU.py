@@ -33,7 +33,10 @@ class Ray(GeoRay):
 
     @property
     def end(self):
-        return self._end
+        if self.terminated:
+            return self._end
+        else:
+            raise Exception("Ray is not terminated")
     @end.setter
     def end(self, end):
         if not self.terminated:
@@ -48,6 +51,13 @@ class Ray(GeoRay):
             return (self.end[0]-self.start[0]) / self.d[0]
         else:
             raise Exception("Ray is not terminated")
+    @endt.setter
+    def endt(self, endt):
+        if not self.terminated:
+            self._end = self.to_coordinate(endt)
+            self.terminated = True
+        else:
+            raise Exception("Ray is already terminated")
 
 
     # @property
