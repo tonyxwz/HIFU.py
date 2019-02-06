@@ -52,6 +52,10 @@ def plot_TElements(te, ax):
         xyz = xyz.reshape((2,3))
         ax.plot(xyz[:,0], xyz[:,1], xyz[:,2], '--', linewidth=0.5, color="g")
 
+        # plot_ray(tr.pow_ray, ax, color="m", linestyle="", linewidth=0.5)
+        # plot_ray(tr.aux_ray1, ax, color="g", linestyle="--", linewidth=0.5)
+        # plot_ray(tr.aux_ray2, ax, color="g", linestyle="--", linewidth=0.5)
+
 def plot_boundary(pl, ax):
     x = pl.p[0]
     vertices = [(x, -0.1, -0.1),
@@ -107,7 +111,6 @@ def plot_box(b, ax, title="", color=[]):
         ax.set_ylabel("y (m)")
         ax.set_zlim(b.o1[2]-0.3*rangez, b.o1[2]+1.3*rangez)
         ax.set_zlabel("z (m)")
-
 
 def plot_trident(tr, ax):
     plot_ray(tr.pow_ray, ax, color="m", linestyle="")
