@@ -62,7 +62,7 @@ class Box(Cuboid):
         "A fast voxel traversal algorithm for ray tracing" 
         by John Amanatides, Andrew Woo, 1984
 
-        http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.42.3443&rep=rep1&type=pdf
+        http://www.cse.yorku.ca/~amana/research/grid.pdf
 
         `ray`: pyHIFU.ray.Ray
         """
