@@ -118,8 +118,8 @@ class TElement(list):
     # .----------------------.
     # |   end of properties  |
     # '----------------------'
-    def D(self, theta):
-        """ helper function used in `ffa` """
+    def Dfunc(self, theta):
+        """ helper function D used in `ffa` by convention """
         var1 = self.ka[LONGITUDINAL] * np.sin(theta)
         return 2 * special.jv(1, var1) / var1
 
@@ -136,18 +136,17 @@ class TElement(list):
             r = np.linalg.norm(r)
         
         term2 = np.exp(1j * self.k[LONGITUDINAL] * r) / (2 * np.pi * r)
-        c_pressure = self.area * self.S0 * term2 * self.D(theta)
+        c_pressure = self.area * self.S0 * term2 * self.Dfunc(theta)
         return c_pressure
 
         
 
 class Transducer(list):
     """ HIFU Transducer: as list of elements """
-    def __init__(self, init_medium, 
+    def __init__(self,
                  sphere_configs=None, nature_focus=0, actual_focus=0, focus_diameter=0, 
                  element_configs=None, element_coordinates=None, frequency=0):
         super().__init__()
-        self.init_medium = init_medium
         # self.sphere = Sphere(**sphere_configs)
         self.element_coordinates = element_coordinates
         self.nature_focus = nature_focus        # nature focus of the transducer sphere
@@ -163,7 +162,8 @@ class Transducer(list):
                                  freq=self.frequency,
                                  nature_f=self.nature_focus))
         
-    def initialize(self, n_rays=None, trident_angle=None, theta_max=None):
+    def initialize(self, init_medium, n_rays=None, trident_angle=None, theta_max=None):
+        self.init_medium = init_medium
         n_rays = n_rays or self.element_configs['n_rays']
         trident_angle = trident_angle or self.element_configs['trident_angle']
         theta_max = theta_max or self.element_configs['theta_max']
@@ -177,11 +177,14 @@ class Transducer(list):
     
             for tr in te:
                 # loop on all trident rays, set end at the markoil interface
-                pp = interface.intersect_line(tr.pow_ray)
-                pa1 = interface.intersect_line(tr.aux_ray1)
-                pa2 = interface.intersect_line(tr.aux_ray2)
+                tr.pow_ray.end = interface.intersect_line(tr.pow_ray)
+                tr.aux_ray1.end = interface.intersect_line(tr.aux_ray1)
+                tr.aux_ray2.end = interface.intersect_line(tr.aux_ray2)
+    
+    def cast(self, mc):
+        """ cast all the inital tridents towards a MediaComplex instance
+        return dictionary of tridents sorted by bundle identifier string
+        """
 
-                tr.pow_ray.set_end(pp)
-                tr.aux_ray1.set_end(pa1)
-                tr.aux_ray2.set_end(pa2)
-
+        # TODO case 1: simply give an empty mc
+        
