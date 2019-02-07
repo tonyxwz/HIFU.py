@@ -1,1 +1,2 @@
-VERSION = 0.1
+from .figure import *
+from .mkplots import *
