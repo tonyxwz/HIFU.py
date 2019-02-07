@@ -5,10 +5,12 @@ from pyHIFU.geometric.vec3 import EPS, Vec3
 from pyHIFU.geometric.volumes import Cuboid
 from pyHIFU.ray import Trident
 from pyHIFU.visualization.mkplots import plot_box, plot_lattice, plot_ray
+from pyHIFU.box.lattice import Lattice
 
 
 class Box(Cuboid):
-    def __init__(self, x1, y1, z1, x2, y2, z2, l, n_trd=256):
+    def __init__(self, x1, y1, z1, x2, y2, z2,
+                 l=None, lx=None, ly=None, lz=None, n_trd=256):
         """
         `[xmin, ymin, zmin]` and `[xmax, ymax, zmax]` defines the diagonal of the Box
 
@@ -24,15 +26,15 @@ class Box(Cuboid):
         c = [0, 0, zmax-zmin]
         super().__init__(o, a, b, c)  # self.o1, self.o2
 
-        self.lx = l # TODO lattice of any width, length, depth
-        self.ly = l
-        self.lz = l
+        self.lx = lx or l
+        self.ly = ly or l
+        self.lz = lz or l
         self.l = np.array([self.lx, self.ly, self.lz])
 
         self.n_trd = n_trd  # num of transducers
-        self.nx = np.int(np.ceil((xmax-xmin) / self.lx))
-        self.ny = np.int(np.ceil((ymax-ymin) / self.ly))
-        self.nz = np.int(np.ceil((zmax-zmin) / self.lz))
+        self.nx = np.int(np.round((xmax-xmin) / self.lx))
+        self.ny = np.int(np.round((ymax-ymin) / self.ly))
+        self.nz = np.int(np.round((zmax-zmin) / self.lz))
         self.nxyz = np.array([self.nx, self.ny, self.nz])
 
         self.abc = self.nxyz * self.l  # the length of edges (after rounding)
@@ -171,20 +173,6 @@ class Box(Cuboid):
         else:
             return None, None
 
-    def properMod(self, a, b, d, s):
-        """ return a % b, along with handling EPS problem
-        `a`: upper
-        `b`: lower
-        `d`: deltas
-        `s`: steps
-        """
-        # TODO handle zero acc. to stepx stepy stepz
-        m = a % b
-        for i in range(len(m)):
-            if m[i] < EPS or b[i] - m[i] < EPS:
-                m[i] = d[i]
-        return m
-
     def properDivide(self, a, b, s):
         """ return quotient and remainder, along with handling EPS problem
         `a`: upper
@@ -208,27 +196,6 @@ class Box(Cuboid):
                 else:  # step >= 0
                     r[i] = 0
         return q, r
-                    
-        
-
-class Lattice():
-    def __init__(self, p, l, n_trd=256):
-        self.o = np.array(p)
-        self.a = np.array([l, 0, 0])
-        self.b = np.array([0, l, 0])
-        self.c = np.array([0, 0, 1])
-        self.center = self.o + (self.a+self.b+self.c) / 2  # for calculating intensity
-        self.o2 = self.o + self.a + self.b + self.c
-
-        # super().__init__(o=o, a=a, b=b, c=c)
-        
-        # self.I_mtx = dict()  # store the total intensity from different bundles
-        # self.phi_mtx = dict()  # store total the phase of different bundles
-        # self.counter_mtx = dict()  # store how many tridents from different bundles
-
-    def get_initial_values(self, r):
-        pass
-
 
 
 if __name__ == "__main__":
@@ -240,11 +207,13 @@ if __name__ == "__main__":
     from mpl_toolkits.mplot3d import Axes3D
     import mpl_toolkits.mplot3d as mp3d
     from random import random
+    import time
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection="3d")
     ax.set_aspect("equal")
 
+    t0 = time.time()
     B = Box(0.1,-0.1,-0.1, 0.3, 0.1,0.1, 0.005)
 
     r = AuxRay([1.3, 0.57, 0.34], [-0.13, -0.057, -0.034])
@@ -270,6 +239,6 @@ if __name__ == "__main__":
     plot_ray(r3, ax, linestyle="--", color='r')
     print("r3")
     B.traversal_along(r3, func=print, debug=True, ax=ax, color=[0,1,0,0.5])
-
+    print(time.time() - t0)
     plot_box(B, ax, title="Box intersection")
     plt.show()
