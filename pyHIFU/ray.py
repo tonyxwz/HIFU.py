@@ -11,7 +11,7 @@ class Ray(GeoRay):
         super().__init__(start, direction)
         try: x_inv = 1 / self.d[0]
         except ZeroDivisionError: x_inv = np.inf
-        
+
         try: y_inv = 1 / self.d[1]
         except ZeroDivisionError: y_inv = np.inf
 
@@ -21,12 +21,12 @@ class Ray(GeoRay):
         self.d_inv = np.array([x_inv, y_inv, z_inv])
 
         self.wave_type = wave_type
-        
+
         self.medium = medium  # medium instance
         self.terminated = False
-    
+
     def find_terminal(self, mc):
-        """ 
+        """
         `mc`: MediaComplex
         """
         pass
@@ -62,7 +62,7 @@ class Ray(GeoRay):
 
     # @property
     # def wave_number(self):
-    #     return 
+    #     return
     @property
     def constant1(self):
         pass
@@ -86,7 +86,7 @@ class Ray(GeoRay):
         pass
 
     # def FSolvePars(self):
-    
+
     def v_reflect(self, interface):
         pass
 
@@ -130,9 +130,9 @@ class Trident(object):
                  start_aux1, dire_aux1,
                  start_aux2, dire_aux2,
                  I0, len0, frequency, initial_phase,
-                 el_id=None, ray_id=None, medium=None,
-                 wave_type=LONGITUDINAL, bundle_identifier=""):
-            # medium)
+                 el_id=None, ray_id=None, medium=None, legacy=[],
+                 wave_type=LONGITUDINAL):
+
         self.wave_type = wave_type
 
         self.pow_ray = PowRay(start=start_pow, direction=dire_pow,
@@ -143,14 +143,26 @@ class Trident(object):
         self.aux_ray2 = AuxRay(start=start_aux2, direction=dire_aux2,
                                wave_type=self.wave_type, medium=medium)
         self.medium = medium
+        # self.med_id = med_id # medium index
         self.id = ray_id # ray id
         self.el_id=el_id # element index
-        # self.med_id = med_id # medium index
-        self.history = list()
+
+        # must be assigned or python's shallow copy behave weird
+        self.history = legacy
+        self.history.append(str(self.medium.id))
 
         self.I0 = I0  # initial intensity of pow_ray
         self.len0 = len0  # position (on pow_ray) at which initial intensity is calculate
         self.P0 = self.I0 * self.get_area_at(len0)
+
+    @property
+    def bundle_identifier(self):
+        # TODO return unique bundle identifier according to properties
+        transducer_string = 'tr_' + str(self.el_id)
+        history_string = 'mh_' + '_'.join(self.history)
+        type_string = "LONGIT" if self.wave_type == LONGITUDINAL else "SHEAR"
+
+        return '_'.join([transducer_string, history_string, type_string])
 
     def __str__(self):
         return str(self.__dict__)

@@ -23,7 +23,7 @@ class TElement(list):
         self.frequency = freq
         self.nature_f = nature_f
         self.axial_ray = Ray(self.center, self.nature_f-self.center)
-        
+
     def initialize(self, init_medium, initial_phase, n=100, trident_angle=1e-4, theta_max=np.pi/6):
         """
         initialize all trident rays until they hit markoil interface
@@ -43,8 +43,7 @@ class TElement(list):
             # initialize n_rays number of random directed trident rays
             theta = np.random.random() * self.theta_max
             p1 = self.axial_ray.to_coordinate(np.cos(theta))
-            # plane1 = Plane(p1, axial_ray.d)
-            # ring = Ring(p1, np.sin(theta), axial_ray.d)
+
             # random angle on the ring by counter-clockwise rotation
             beta = np.random.random() * np.pi * 2
             v_ = Vec3.rotate(v_radial_origin, self.axial_ray.d, beta)
@@ -52,6 +51,7 @@ class TElement(list):
             p_end = p1 + Vec3.normalize(v_)*np.sin(theta)
             pow_dire = p_end - self.center
             ray_helper = Ray(self.center, pow_dire)
+
             # two perpendicular directions for auxrays
             n_helper = ray_helper.perpendicularDirection()
             n2_helper = np.cross(pow_dire, n_helper)
@@ -69,7 +69,8 @@ class TElement(list):
                                 self.center, a2_end-self.center,
                                 I0, z, self.frequency, self.initial_phase,
                                 el_id=self.el_id, ray_id=self.el_id*self.n_rays+i,
-                                medium=init_medium, wave_type=LONGITUDINAL)) # med_idx = 0: lossless
+                                medium=init_medium, legacy=[],
+                                wave_type=LONGITUDINAL))
 
     # .-----------------------.
     # | short-hand properties |
@@ -134,39 +135,40 @@ class TElement(list):
         if theta is None:
             theta = Vec3.angle_between(r, self.axial_ray.d)
             r = np.linalg.norm(r)
-        
+
         term2 = np.exp(1j * self.k[LONGITUDINAL] * r) / (2 * np.pi * r)
         c_pressure = self.area * self.S0 * term2 * self.Dfunc(theta)
         return c_pressure
 
-        
 
 class Transducer(list):
     """ HIFU Transducer: as list of elements """
     def __init__(self,
-                 sphere_configs=None, nature_focus=0, actual_focus=0, focus_diameter=0, 
-                 element_configs=None, element_coordinates=None, frequency=0):
+                 nature_focus=0, actual_focus=0, focus_diameter=0, frequency=0,
+                 element_properties=None, element_coordinates=None,
+                 element_init_paras=None):
         super().__init__()
         # self.sphere = Sphere(**sphere_configs)
         self.element_coordinates = element_coordinates
-        self.nature_focus = nature_focus        # nature focus of the transducer sphere
-        self.actual_focus = actual_focus        # ultrasound focus
-        self.focus_diameter = focus_diameter    # diameter of the focus area 
-        self.element_configs = element_configs  # radius of transducer element
-        self.frequency = frequency              # frequency of the US emitted
+        self.nature_focus = nature_focus              # nature focus of the transducer sphere
+        self.actual_focus = actual_focus              # ultrasound focus
+        self.focus_diameter = focus_diameter          # diameter of the focus area
+        self.element_properties = element_properties  # radius of transducer element
+        self.frequency = frequency                    # frequency of the US emitted
 
         for i,co in enumerate(self.element_coordinates):
             self.append(TElement(i, co,
-                                 radius=self.element_configs["radius"],
-                                 power=self.element_configs["power"],
+                                 radius=self.element_properties["radius"],
+                                 power=self.element_properties["power"],
                                  freq=self.frequency,
                                  nature_f=self.nature_focus))
-        
+
     def initialize(self, init_medium, n_rays=None, trident_angle=None, theta_max=None):
         self.init_medium = init_medium
-        n_rays = n_rays or self.element_configs['n_rays']
-        trident_angle = trident_angle or self.element_configs['trident_angle']
-        theta_max = theta_max or self.element_configs['theta_max']
+        n_rays = n_rays
+        trident_angle = trident_angle
+        theta_max = theta_max
+
         interface = self.init_medium.shape[0]
 
         for te in self:
@@ -174,17 +176,18 @@ class Transducer(list):
                           n=n_rays,
                           trident_angle=trident_angle,
                           theta_max=theta_max)
-    
+
             for tr in te:
                 # loop on all trident rays, set end at the markoil interface
                 tr.pow_ray.end = interface.intersect_line(tr.pow_ray)
                 tr.aux_ray1.end = interface.intersect_line(tr.aux_ray1)
                 tr.aux_ray2.end = interface.intersect_line(tr.aux_ray2)
-    
+
     def cast(self, mc):
-        """ cast all the inital tridents towards a MediaComplex instance
+        """ cast all the inital tridents towards a MediaComplex instance `mc`
         return dictionary of tridents sorted by bundle identifier string
         """
 
         # TODO case 1: simply give an empty mc
-        
+        # if len(te) == 0: raise Exception(transducer not initialized)
+
