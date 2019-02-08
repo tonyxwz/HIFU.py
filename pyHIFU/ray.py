@@ -1,4 +1,5 @@
 import abc
+from copy import copy as shlwcopy
 import numpy as np
 from .geometric.lines import Ray as GeoRay
 from .geometric.surfaces import Plane
@@ -147,8 +148,8 @@ class Trident(object):
         self.id = ray_id # ray id
         self.el_id=el_id # element index
 
-        # must be assigned or python's shallow copy behave weird
-        self.history = legacy
+        # Must copy to assign value, shallow copy is enough as str are inmutable
+        self.history = shlwcopy(legacy)
         self.history.append(str(self.medium.id))
 
         self.I0 = I0  # initial intensity of pow_ray
