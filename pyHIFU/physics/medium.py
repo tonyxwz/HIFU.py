@@ -1,14 +1,42 @@
 import numpy as np
 from pyHIFU.io.config import readjson
-from pyHIFU.geometric.surfaces import Plane
+from pyHIFU.geometric.surfaces import Plane, Sphere
 from pyHIFU.geometric.volumes import Ball, Cuboid, Cylinder
 from pyHIFU.physics import LIQUID, SOLID, SHEAR, LONGITUDINAL
 
-SHAPE_FUNC_DICT = {'ball': Ball, 'cuboid': Cuboid, 'cylinder': Cylinder}
+
+SHAPE_CLASS_DICT = {
+    'ball': Ball, 
+    'cuboid': Cuboid,
+    'cylinder': Cylinder,
+    'plane': Plane
+}
+
+BOUNDARY_CLASS_DICT = {
+    'plane': Plane,
+    'sphere': Sphere
+}
 
 markoil_properties = {
-
+    'material_name': 'markoil',
+    'state': LIQUID,
+    'density': 1070,
+    'cL': 1430,
+    'absorption': 1.04,
+    'attenuationL': 1.04,
+    'heat_capacity': 4200,
+    'thermal_conductivity': 0.5
 }
+
+lossless_properties = {
+    'material_name': 'lossless',
+    'state': LIQUID,
+    'cL': 1380,
+    'density': 1030,
+    'attenuationL': 0,
+    'absorption': 0
+}
+
 
 class Material(object):
     """ only physics properties here """
@@ -76,7 +104,7 @@ class Medium(Material):
             pass
         else:
             shape_type = geoinfo['shape_type']
-            self.shape = SHAPE_FUNC_DICT[shape_type](**geoinfo['parameters'])
+            self.shape = SHAPE_CLASS_DICT[shape_type](**geoinfo['parameters'])
 
 
     @staticmethod
@@ -102,26 +130,37 @@ class Medium(Material):
 class InitMedium(Material):
     """ Initial medium e.g. markoil and lossless
     """
-    def __init__(self, material_name='', state=LIQUID, density=0,
+    def __init__(self, medium_name='', med_idx=-1,
+            material_name='', state=LIQUID, density=0,
             cL=0, cS=0,
             attenuationL=0, attenuationS=0,
             absorption=0, thermal_conductivity=0, heat_capacity=0,
-            med_name=None, med_idx=0,
             boundary=None, **kw):
 
         super().__init__(material_name=material_name, state=state, density=density,
                          cL=cL, cS=cS,
                          attenuationL=attenuationL, attenuationS=attenuationS,
                          absorption=absorption, thermal_conductivity=thermal_conductivity, heat_capacity=heat_capacity)
-        self.boundary = Plane(**boundary)
+        # self.boundary = SHAPE_CLASS_DICT[boundary['type']](**boundary)
+        self.boundary = Plane(boundary['p'], boundary['n'])
         self.is_initial = True
         self.shape = [self.boundary]  # in order to be compatible with Medium
-        self.id = -1
+        self.id = med_idx
 
     @staticmethod
     def from_config(config):
         pass
 
+    @staticmethod
+    def new_markoil(boundary, med_idx=-1):
+        return InitMedium(medium_name="initial_markoil",
+                          med_idx=med_idx, boundary=boundary,
+                          **markoil_properties)
+    @staticmethod
+    def new_lossless(boundary, med_idx=-1):
+        return InitMedium(medium_name="initial_lossless",
+                          med_idx=med_idx, boundary=boundary,
+                          **lossless_properties)
 
 class MediaComplex(list):
     """

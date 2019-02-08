@@ -183,11 +183,19 @@ class Transducer(list):
                 tr.aux_ray1.end = interface.intersect_line(tr.aux_ray1)
                 tr.aux_ray2.end = interface.intersect_line(tr.aux_ray2)
 
-    def cast(self, mc):
+    def cast(self, mc=[]):
         """ cast all the inital tridents towards a MediaComplex instance `mc`
         return dictionary of tridents sorted by bundle identifier string
         """
 
-        # TODO case 1: simply give an empty mc
-        # if len(te) == 0: raise Exception(transducer not initialized)
+        tr_dict = dict()
+        for te in self:
+            if len(te) == 0:
+                raise Exception("Must initialize Transducer to cast rays")
+            for tr in te:
+                if not tr.bundle_identifier in tr_dict:
+                    tr_dict[tr.bundle_identifier] = []
+                tr_dict[tr.bundle_identifier].append(tr)
+                # TODO loop on mc to find all child tridents
+        return tr_dict
 
