@@ -68,7 +68,7 @@ class TElement(list):
             self.append(Trident(self.center, pow_dire,
                                 self.center, a1_end-self.center,
                                 self.center, a2_end-self.center,
-                                I0, z, self.frequency, self.initial_phase,
+                                I0, self.frequency, self.initial_phase, len0=z,
                                 el_id=self.el_id, ray_id=self.el_id*self.n_rays+i,
                                 medium=init_medium, legacy=[],
                                 wave_type=LONGITUDINAL))
@@ -189,7 +189,7 @@ class Transducer(list):
         return dictionary of tridents sorted by bundle identifier string
         """
 
-        tr_dict = dict()
+        bundle_dict = dict()
         for te in self:
             if len(te) == 0:
                 raise Exception("Must initialize Transducer to cast rays")
@@ -198,9 +198,9 @@ class Transducer(list):
                 tr_stack = [tr]
                 while len(tr_stack):
                     tnow = tr_stack.pop()
-                    if not tnow.bundle_identifier in tr_dict:
-                        tr_dict[tnow.bundle_identifier] = []
-                    tr_dict[tnow.bundle_identifier].append(tr)
+                    if not tnow.bundle_identifier in bundle_dict:
+                        bundle_dict[tnow.bundle_identifier] = []
+                    bundle_dict[tnow.bundle_identifier].append(tr)
                     # TODO
                     # t1, t2 = tnow.reflect(mc)
                     # t3, t4 = tnow.refract(mc)
@@ -209,5 +209,5 @@ class Transducer(list):
                     # tr_stack.append(t2)
                     # tr_stack.append(t3)
                     # tr_stack.append(t4)
-        return tr_dict
+        return bundle_dict
 
