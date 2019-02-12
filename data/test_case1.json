@@ -7,7 +7,7 @@
 
         "focus_diameter": 2,
 
-        "frequency": 1.4e6,
+        "frequency": 1.2e6,
 
         "element_properties": {
             "radius": 3.5e-3,
@@ -15,10 +15,16 @@
         },
 
         "element_init_paras": {
-            "n_rays": 300,
+            "n_rays": 3,
             "trident_angle": 1e-2,
             "theta_max": 0.5235987755982988
         }
+    },
+
+    "box":{
+        "max": [0.165, 0.025, 0.025],
+        "min": [0.115,-0.025,-0.025],
+        "step": 0.0005
     },
 
     "init_medium": {
@@ -27,7 +33,7 @@
 
         "boundary":{
             "type": "plane",
-            "p": [0.14, 0, 0],
+            "p": [0.2, 0, 0],
             "n": [1, 0, 0]
         }
     },
