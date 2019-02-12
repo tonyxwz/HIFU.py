@@ -76,13 +76,16 @@ class Line(object):
     def is_parallel(self, other):
         return not np.any(np.cross(self.d, other.d))
 
-    def find_foot(self, point):
+    def find_foot(self, point, return_t=False):
         """ food in perpendicular """
         if type(point) is not np.ndarray:
             point = np.array(point)
 
         t = self.d.dot(point - self.p) / self.d.dot(self.d)
-        return self.to_coordinate(t)
+        if return_t:
+            return t
+        else:
+            return self.to_coordinate(t)
 
     def distance_to_point(self, point):
         foot = self.find_foot(point)

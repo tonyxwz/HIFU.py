@@ -1,3 +1,4 @@
+from collections import deque
 import numpy as np
 from .geometric.surfaces import Sphere
 from .geometric.lines import Ray
@@ -36,7 +37,7 @@ class TElement(list):
         self.theta_max = theta_max
         self.n_rays = n
         self.init_medium = init_medium
-        self.fluxfunc = lambda x: np.sin(x) * (2 * special.jv(1, self.ka * x) / self.ka * x)**2
+        self.fluxfunc = lambda x: np.sin(x) * (2 * special.jv(1, self.ka * x) / (self.ka * x) )**2
         self.initial_phase = initial_phase
         vr = self.axial_ray.perpendicularDirection()
         for i in range(self.n_rays):
@@ -67,7 +68,7 @@ class TElement(list):
             self.append(Trident(self.center, pow_dire,
                                 self.center, a1_end-self.center,
                                 self.center, a2_end-self.center,
-                                I0, z, self.frequency, self.initial_phase,
+                                I0, self.frequency, self.initial_phase, len0=z,
                                 el_id=self.el_id, ray_id=self.el_id*self.n_rays+i,
                                 medium=init_medium, legacy=[],
                                 wave_type=LONGITUDINAL))
@@ -82,7 +83,7 @@ class TElement(list):
     @property
     def k(self):
         # wave number, only used in transducer initialization
-        return 2*np.pi*self.frequency*self.init_medium.c
+        return 2*np.pi*self.frequency / self.init_medium.c
     @property
     def ka(self):
         # ka = k * a
@@ -104,7 +105,7 @@ class TElement(list):
         J1=Besselfunction, n=1
         TODO find which is CORRECT formula
         """
-        Int = integrate.quad(self.fluxfunc, 0, np.pi/2)
+        Int = integrate.quad(self.fluxfunc, 0.00000001, np.pi/2)
         S0 = np.sqrt(4*np.pi*self.init_medium.Z[LONGITUDINAL]*self.required_power/Int[0])/self.area
         return S0
     @property
@@ -188,7 +189,7 @@ class Transducer(list):
         return dictionary of tridents sorted by bundle identifier string
         """
 
-        tr_dict = dict()
+        bundle_dict = dict()
         for te in self:
             if len(te) == 0:
                 raise Exception("Must initialize Transducer to cast rays")
@@ -197,9 +198,9 @@ class Transducer(list):
                 tr_stack = [tr]
                 while len(tr_stack):
                     tnow = tr_stack.pop()
-                    if not tnow.bundle_identifier in tr_dict:
-                        tr_dict[tnow.bundle_identifier] = []
-                    tr_dict[tnow.bundle_identifier].append(tr)
+                    if not tnow.bundle_identifier in bundle_dict:
+                        bundle_dict[tnow.bundle_identifier] = []
+                    bundle_dict[tnow.bundle_identifier].append(tr)
                     # TODO
                     # t1, t2 = tnow.reflect(mc)
                     # t3, t4 = tnow.refract(mc)
@@ -208,5 +209,5 @@ class Transducer(list):
                     # tr_stack.append(t2)
                     # tr_stack.append(t3)
                     # tr_stack.append(t4)
-        return tr_dict
+        return bundle_dict
 

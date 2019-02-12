@@ -106,10 +106,17 @@ class PowRay(Ray):
         self.initial_phase = initial_phase
         self.angular_frequency = 2 * np.pi * self.frequency
         self.wave_number = self.angular_frequency / self.medium.c[self.wave_type]
-        # self.end = 0 # calculate the end of the vector acc. medium
+        self.wave_length = self.medium.c[self.wave_type] / self.frequency
 
     def snell(self):
         pass
+
+    def get_phase_at(self, l):
+        return (l / self.wave_length) * np.pi * 2
+
+    @property
+    def final_phase(self):
+        return self.get_phase_at(self.endt)
 
 
 class AuxRay(Ray):
@@ -130,7 +137,7 @@ class Trident(object):
     def __init__(self, start_pow, dire_pow,
                  start_aux1, dire_aux1,
                  start_aux2, dire_aux2,
-                 I0, len0, frequency, initial_phase,
+                 I0, frequency, initial_phase, len0=0,
                  el_id=None, ray_id=None, medium=None, legacy=[],
                  wave_type=LONGITUDINAL):
 
@@ -153,7 +160,7 @@ class Trident(object):
         self.history.append(str(self.medium.id))
 
         self.I0 = I0  # initial intensity of pow_ray
-        self.len0 = len0  # position (on pow_ray) at which initial intensity is calculate
+        self.len0 = len0  # position (on pow_ray) at which initial intensity is calculate, aka distance_z
         self.P0 = self.I0 * self.get_area_at(len0)
 
     @property
@@ -188,9 +195,12 @@ class Trident(object):
         """
         A1 = self.get_area_at(d)
         # TODO add attenuation here (or rename to `get_intensity_at`)
-        I1 = self.P0 * self.attenufactor(d) / A1
+        I1 = self.P0 * self.attenufactor(d-self.len0) / A1
         # Q = I1 * 2 * attenuation
         return I1
+
+    def get_phase_at(self, d):
+        return self.pow_ray.get_phase_at(d)
 
     def attenufactor(self, s):
         return np.exp(-2*self.medium.attenuation[self.wave_type]*s)
