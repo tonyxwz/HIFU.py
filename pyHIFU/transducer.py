@@ -39,7 +39,7 @@ class TElement(list):
         self.init_medium = init_medium
         self.fluxfunc = lambda x: np.sin(x) * (2 * special.jv(1, self.ka * x) / (self.ka * x) )**2
         self.initial_phase = initial_phase
-        v_radial_origin = self.axial_ray.perpendicularDirection()
+        vr = self.axial_ray.perpendicularDirection()
         for i in range(self.n_rays):
             # initialize n_rays number of random directed trident rays
             theta = np.random.random() * self.theta_max
@@ -47,7 +47,7 @@ class TElement(list):
 
             # random angle on the ring by counter-clockwise rotation
             beta = np.random.random() * np.pi * 2
-            v_ = Vec3.rotate(v_radial_origin, self.axial_ray.d, beta)
+            v_ = Vec3.rotate(vr, self.axial_ray.d, beta)
 
             p_end = p1 + Vec3.normalize(v_)*np.sin(theta)
             pow_dire = p_end - self.center
@@ -179,7 +179,7 @@ class Transducer(list):
                           theta_max=theta_max)
 
             for tr in te:
-                # loop on all trident rays, set end at the markoil interface
+                # TODO move set end point to casting
                 tr.pow_ray.end = interface.intersect_line(tr.pow_ray)
                 tr.aux_ray1.end = interface.intersect_line(tr.aux_ray1)
                 tr.aux_ray2.end = interface.intersect_line(tr.aux_ray2)
@@ -201,9 +201,10 @@ class Transducer(list):
                     if not tnow.bundle_identifier in tr_dict:
                         tr_dict[tnow.bundle_identifier] = []
                     tr_dict[tnow.bundle_identifier].append(tr)
-                    # TODO 
+                    # TODO
                     # t1, t2 = tnow.reflect(mc)
                     # t3, t4 = tnow.refract(mc)
+                    # t1.end = ... t2.end = ... t3.end = ... t4.end = ...
                     # tr_stack.append(t1)
                     # tr_stack.append(t2)
                     # tr_stack.append(t3)

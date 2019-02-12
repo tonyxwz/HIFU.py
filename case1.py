@@ -1,5 +1,7 @@
-# case one: no interfaces, ray casted from one transducer to infinite markoil medium
-# sample on cube and compare result from traditional method
+"""
+case one: no interfaces, ray casted from one transducer to infinite markoil
+medium sample on cube and compare result from traditional method
+"""
 
 from pyHIFU.transducer import Transducer
 from pyHIFU.io.config import readjson
@@ -38,15 +40,19 @@ print("initialization and casting time:", end_time-start_time, "seconds")
 
 # start sampling
 start_time = time.time()
-B = Box(0.05,-0.025,-0.025, 0.1, 0.025, 0.025, 0.0005)
+box_config = config['box']
+
+B = Box(*box_config['min'], *box_config['max'], box_config['step'])
 print(len(B.lattrix))
 end_time = time.time()
 print("sampling time:", end_time-start_time, "seconds")
 
-fig = plt.figure()
-ax = create_ax(fig)
-plot_transducer(T, ax)
-plot_boundary(T.init_medium.boundary, ax)
-plot_box(B, ax, title="Box with Transducer")
+verbose = False
+if verbose:
+    fig = plt.figure()
+    ax = create_ax(fig)
+    plot_transducer(T, ax)
+    plot_boundary(T.init_medium.boundary, ax)
+    plot_box(B, ax, title="Box with Transducer")
 
-plt.show()
+    plt.show()
