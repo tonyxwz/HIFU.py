@@ -6,7 +6,7 @@ from pyHIFU.geometric.volumes import Cuboid
 from pyHIFU.ray import Trident
 from pyHIFU.visualization.mkplots import plot_box, plot_lattice, plot_ray
 from pyHIFU.box.lattice import Lattice
-
+from pyHIFU.box.sparse3d import Sparse3D
 
 class Box(Cuboid):
     def __init__(self, x1, y1, z1, x2, y2, z2,
@@ -53,13 +53,28 @@ class Box(Cuboid):
                     R.append(new_ltc)
                 P.append(R)
             self.lattrix.append(P)
+
+    def intersect_trident(self, tr:Trident, I:Sparse3D, ph:Sparse3D, counter:Sparse3D,
+                          v=None, w=None):  # TODO for solid media
+        # add the contribution of one trident to this box
+        update_func = lambda x, y, z: self.update_lattice(x, y, z, tr, I, ph, counter)
+        self.traversal_along(tr.pow_ray, func=update_func)
     
-    def intersect_trident(self, tr:Trident):
-        pass
+    def update_lattice(self, x, y, z, tr:Trident, I, ph, counter):
+        """
+        `tr`: trident instance
+        `sparse`: the sparse matrix to be updated e.g. I, Phase, velocity and et cetera
+        """
+        p = self.lattice_center(x, y, z)
+        t = tr.pow_ray.find_foot(p, return_t=True)
+
+        I[x, y, z] += tr.get_intensity_at(t)
+        ph[x, y, z] += tr.get_phase_at(t)
+        counter[x, y, z] += 1
 
     def traversal_along(self, ray, func=None, debug=False, ax=None, color=[]):
-        """ A implementation of 3DDA algorithm as described in
-        "A fast voxel traversal algorithm for ray tracing" 
+        """ A implementation of 3DDA algorithm inspired by
+        "A fast voxel traversal algorithm for ray tracing"
         by John Amanatides, Andrew Woo, 1984
 
         http://www.cse.yorku.ca/~amana/research/grid.pdf
@@ -84,23 +99,23 @@ class Box(Cuboid):
             e0 = ray.to_coordinate(et)
             if ax:
                 ax.scatter([s0[0], e0[0]], [s0[1], e0[1]], [s0[2], e0[2]], color=color)
-            
+
             s = s0 - self.o1  # subtraction -> float risk
             e = e0 - self.o1
 
             # Quotient, Remainder of s(start) and e(end)
-            qs, rs = self.properDivide(s, self.l, [stepX, stepY, stepZ])
+            qs, rs = self._properDivide(s, self.l, [stepX, stepY, stepZ])
             if np.any(qs < 0) or np.any(qs > self.nxyz-1):
                 # the ray start at on face of the box and is leaving the box
                 return
             # if function didn't return from calculating the start point,
             # there shouldn't be a problem calculation the end point.
-            qe, re = self.properDivide(e, self.l, [-stepX, -stepY, -stepZ])
+            qe, _re = self._properDivide(e, self.l, [-stepX, -stepY, -stepZ])
 
             X = int(qs[0])
             Y = int(qs[1])
             Z = int(qs[2])
-            
+
             X_out = int(qe[0])
             Y_out = int(qe[1])
             Z_out = int(qe[2])
@@ -154,7 +169,7 @@ class Box(Cuboid):
         # vectorized operation
         txyz1 = (self.o1 - ray.p) * ray.d_inv
         txyz2 = (self.o2 - ray.p) * ray.d_inv
-        
+
         tmins = np.min([txyz1, txyz2], axis=0)
         tmaxs = np.max([txyz1, txyz2], axis=0)
 
@@ -173,7 +188,7 @@ class Box(Cuboid):
         else:
             return None, None
 
-    def properDivide(self, a, b, s):
+    def _properDivide(self, a, b, s):
         """ return quotient and remainder, along with handling EPS problem
         `a`: upper
         `b`: lower
@@ -196,6 +211,9 @@ class Box(Cuboid):
                 else:  # step >= 0
                     r[i] = 0
         return q, r
+
+    def lattice_center(self, x, y, z):
+        return self.lattrix[x][y][z].center
 
 
 if __name__ == "__main__":

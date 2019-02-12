@@ -8,20 +8,21 @@ import cmath
 
 # TODO Tuples can be used as dictionary key because it is inmutable
 class Sparse3D():
-    def __init__(self, shape):
-        self.shape = shape
+    def __init__(self, shape, dtype=float):
+        self.shape = (int(shape[0]), int(shape[1]), int(shape[2]))
         self.__data = {}
-        self.__default = 0.0
+        self.dtype = dtype
+        self.__default = self.dtype(0.0)
 
     def __setitem__(self, index, value):
         """ set value to position given in index, where index is a tuple. """
-        if index > (0, 0, 0) and index < self.shape:
-            self.__data[index] = float(value)
+        if index >= (0, 0, 0) and index < self.shape:
+            self.__data[index] = self.dtype(value)
         else:
             raise Exception("Index out of range of sparse matrix")
 
     def __getitem__(self, index):
-        if index > (0, 0, 0) and index < self.shape:
+        if index >= (0, 0, 0) and index < self.shape:
             return self.__data.get(index, self.__default)
         else:
             raise Exception("Index out of range of sparse matrix")
@@ -41,7 +42,10 @@ class Sparse3D():
                 out[k] = out[k] + v
         else: 
             raise Exception("Dimensions do not match.")
-        
+
+    def getdata(self):
+        return self.__data
+
 
     
         
