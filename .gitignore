@@ -119,3 +119,4 @@ dmypy.json
 
 output.txt
 .vscode/tags
+*.npy
