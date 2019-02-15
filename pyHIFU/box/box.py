@@ -39,21 +39,6 @@ class Box(Cuboid):
 
         self.abc = self.nxyz * self.l  # the length of edges (after rounding)
 
-        self.lattrix = list()  # LAT(tice ma)TRIX 3D
-        for ix in range(self.nx):
-            x = xmin + ix * self.lx
-            P = list()  # 2D (Plane)
-            for iy in range(self.ny):
-                y = ymin + iy * self.ly
-                R = list()  # 1D (Row)
-                for iz in range(self.nz):
-                    z = zmin + iz * self.lz
-                    p_ = [x, y, z]
-                    new_ltc = Lattice(p_, self.l, n_trd=self.n_trd)
-                    R.append(new_ltc)
-                P.append(R)
-            self.lattrix.append(P)
-
     def intersect_trident(self, tr:Trident, I:Sparse3D, ph:Sparse3D, counter:Sparse3D,
                           v=None, w=None):  # TODO for solid media
         # add the contribution of one trident to this box
@@ -213,7 +198,7 @@ class Box(Cuboid):
         return q, r
 
     def lattice_center(self, x, y, z):
-        return self.lattrix[x][y][z].center
+        return self.l * [x+0.5, y+0.5, z+0.5] + self.o1
 
 
 if __name__ == "__main__":
