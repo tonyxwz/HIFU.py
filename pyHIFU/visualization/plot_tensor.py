@@ -6,6 +6,7 @@ def plot_sliced_tensor(t, slicing_axis=0):
     """
     `t`: 3D tensor data
     """
+    axis = ['x', 'y', 'z']
     n = t.shape[slicing_axis]
     step = 1
     init = int(n / 2)
@@ -19,7 +20,7 @@ def plot_sliced_tensor(t, slicing_axis=0):
     plt.axis('off')
 
     ax_s = plt.axes([0.15, 0.07, 0.7, 0.03], facecolor="lightgoldenrodyellow")
-    slider = Slider(ax_s, 'x-Slice', 1, n, valinit=init, valstep=step, valfmt="%d")
+    slider = Slider(ax_s, axis[slicing_axis]+'-Slice', 1, n, valinit=init, valstep=step, valfmt="%d")
     update_func = lambda val: update(val, t, im, slicing_axis=slicing_axis)
     slider.on_changed(update_func)
     plt.show()
@@ -36,4 +37,4 @@ def update(val, t, im, slicing_axis=0):
 if __name__ == "__main__":
     from skimage import io
     vol = io.imread("https://s3.amazonaws.com/assets.datacamp.com/blog_assets/attention-mri.tif")
-    plot_sliced_tensor(vol)
+    plot_sliced_tensor(vol, slicing_axis=2)
