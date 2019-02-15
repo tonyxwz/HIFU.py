@@ -139,7 +139,7 @@ class Polygon(Plane):
 
 
 class Triangle(Polygon):
-    """ most simple polygon """
+    """ most simple polygon, useful in mesh """
     pass
 
 
@@ -173,7 +173,7 @@ class Rectangle(Plane):
         return ans
     def is_overlapping(self, other):
         """ if all the vertices of one rectangle are inside another rect"""
-        pass
+        return self.has_rect(other) or other.has_rect(self)
 
     def has_point(self, point):
         f1 = self.edges[0].find_foot(point)
@@ -191,7 +191,10 @@ class Rectangle(Plane):
         return None
 
     def has_rect(self, other):
-        pass
+        ans = False
+        for e in other.edges:
+            ans = ans and self.has_point(e.p)
+        return ans
 
 
 class Sphere(object):
