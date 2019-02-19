@@ -56,7 +56,7 @@ def run(json_path, pyd_path):
     print("sampling time:", end_time-start_time, "seconds")
 
     if pyd_path is None:
-        pyd_path = 'pressure'+'_l'+str(B.lx)+"_n"+str(len(T[0])) +str(int(time.time()))
+        pyd_path = 'pressure'+'_l'+str(B.lx)+"_n"+str(len(T[0])) + "_t"+str(int(time.time()))
     real_pressure = np.abs(complex_pressure)
     np.save(pyd_path, real_pressure)
 
