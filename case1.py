@@ -37,11 +37,12 @@ def run(json_path, pyd_path):
     init_medium_config = config['init_medium']
     init_medium = InitMedium.new_markoil(init_medium_config['boundary'])
     T.initialize(init_medium, **transducer_config["element_init_paras"])
+    end_time = time.time()
+    print("initialization:", end_time-start_time, "seconds")
 
     bundle_dict = T.cast()
     end_time = time.time()
-
-    print("initialization and casting time:", end_time-start_time, "seconds")
+    print("casting time:", end_time-start_time, "seconds")
 
     # start sampling
     start_time = time.time()
@@ -60,7 +61,7 @@ def run(json_path, pyd_path):
     real_pressure = np.abs(complex_pressure)
     np.save(pyd_path, real_pressure)
 
-    plot_sliced_tensor(real_pressure)
+    plot_sliced_tensor(real_pressure, slicing_axis=2)
 
     verbose = False
     if verbose:
