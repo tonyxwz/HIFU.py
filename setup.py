@@ -26,12 +26,12 @@ VERSION = 0.1
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    'numpy', 'numba'
+    'numpy', 'numba', 'scipy', 'matplotlib'
 ]
 
 # What packages are optional?
 EXTRAS = {
-    'plotting': ['matplotlib', 'vtk'],
+    'plotting': ['vtk'],
 }
 
 # The rest you shouldn't have to touch too much :)
