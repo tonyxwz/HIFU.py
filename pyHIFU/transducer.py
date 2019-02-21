@@ -1,4 +1,5 @@
 from collections import deque
+import time
 import numpy as np
 from .geometric.surfaces import Sphere
 from .geometric.lines import Ray
@@ -38,8 +39,9 @@ class TElement(list):
         self.n_rays = n
         self.init_medium = init_medium
         self.fluxfunc = lambda x: np.sin(x) * (2 * special.jv(1, self.ka * x) / (self.ka * x) )**2
-        self.initial_phase = initial_phase
+        self.initial_phase = initial_phase*np.random.random()
         vr = self.axial_ray.perpendicularDirection()
+        vr = Vec3.rotate(vr, self.axial_ray.d, np.random.random()*np.pi*2)
         for i in range(self.n_rays):
             # initialize n_rays number of random directed trident rays
             theta = np.random.random() * self.theta_max
@@ -121,9 +123,16 @@ class TElement(list):
     # |   end of properties  |
     # '----------------------'
     def Dfunc(self, theta):
-        """ helper function D used in `ffa` by convention """
-        var1 = self.ka[LONGITUDINAL] * np.sin(theta)
-        return 2 * special.jv(1, var1) / var1
+        """
+        helper function D used in `ffa` by convention
+        f[x_] := BesselJ[1, k a Sin[x]]
+        f'[x_] := 1/2 a k (BesselJ[0, a k Sin[x_]] - BesselJ[2, a k Sin[x_]]) Cos[x_]
+        """
+        if theta:
+            var1 = self.ka[LONGITUDINAL] * np.sin(theta)
+            return 2 * special.jv(1, var1) / var1
+        else:
+            return special.jv(0, 0) - special.jv(2, 0)
 
     def ffa(self, r, theta=None):
         """
@@ -171,7 +180,9 @@ class Transducer(list):
         theta_max = theta_max
 
         interface = self.init_medium.shape[0]
-
+        seed = int(time.time())
+        print("random seed:", seed)
+        np.random.random(seed)
         for te in self:
             te.initialize(self.init_medium, initial_phase=0,
                           n=n_rays,
@@ -181,8 +192,8 @@ class Transducer(list):
             for tr in te:
                 # TODO move set end point to casting
                 tr.pow_ray.end = interface.intersect_line(tr.pow_ray)
-                tr.aux_ray1.end = interface.intersect_line(tr.aux_ray1)
-                tr.aux_ray2.end = interface.intersect_line(tr.aux_ray2)
+                # tr.aux_ray1.end = interface.intersect_line(tr.aux_ray1)
+                # tr.aux_ray2.end = interface.intersect_line(tr.aux_ray2)
 
     def cast(self, mc=[]):
         """ cast all the inital tridents towards a MediaComplex instance `mc`
@@ -210,4 +221,3 @@ class Transducer(list):
                     # tr_stack.append(t3)
                     # tr_stack.append(t4)
         return bundle_dict
-
