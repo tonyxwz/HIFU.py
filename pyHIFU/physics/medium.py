@@ -63,8 +63,7 @@ class Material(object):
 
     @property
     def Z(self):  # impedence z = c * rho
-        d = self.c * self.density
-        return d
+        return self.c * self.density
 
     def FSolvePars(self, ray):
         """
