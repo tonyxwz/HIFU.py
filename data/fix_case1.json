@@ -1,0 +1,44 @@
+{
+    "transducer":{
+
+        "nature_focus": [0.14, 0, 0],
+
+        "actual_focus": [0.17, 0, 0],
+
+        "focus_diameter": 2,
+
+        "frequency": 1.2e6,
+
+        "element_properties": {
+            "radius": 3.5e-3,
+            "power": 40
+        },
+
+        "element_init_paras": {
+            "n_rays": 500,
+            "trident_angle": 5e-3,
+            "theta_max": 0.1
+        }
+    },
+
+    "box":{
+        "max": [0.157, 0.003, 0.003],
+        "min": [0.143,-0.003,-0.003],
+        "step": 0.0002
+    },
+
+    "init_medium": {
+
+        "material_name": "markoil",
+
+        "boundary":{
+            "type": "plane",
+            "p": [0.2, 0, 0],
+            "n": [1, 0, 0]
+        }
+    },
+
+    "medium_list": [
+    ]
+
+}
