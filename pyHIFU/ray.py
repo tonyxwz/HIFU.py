@@ -176,6 +176,13 @@ class Trident(object):
         return str(self.__dict__)
 
     def get_area_at(self, distance):
+        p0 = distance * self.pow_ray.unit_vector + self.pow_ray.p
+        p1 = distance * self.aux_ray1.unit_vector + self.aux_ray1.p
+        p2 = distance * self.aux_ray2.unit_vector + self.aux_ray2.p
+        area = np.linalg.norm(np.cross(p1-p0, p2-p0)) / 2
+        return area
+
+    def get_area_at_alt(self, distance):
         """
         https://proofwiki.org/wiki/Norm_of_Vector_Cross_Product
         """
