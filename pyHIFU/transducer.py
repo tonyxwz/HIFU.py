@@ -36,6 +36,7 @@ class TElement(list):
         """
         self.trident_angle = trident_angle
         self.theta_max = theta_max
+        AA = 1 - np.cos(theta_max)
         self.n_rays = n
         self.init_medium = init_medium
         self.fluxfunc = lambda x: np.sin(x) * (2 * special.jv(1, self.ka * x) / (self.ka * x) )**2
@@ -44,7 +45,8 @@ class TElement(list):
         vr = Vec3.rotate(vr, self.axial_ray.d, np.random.random()*np.pi*2)
         for i in range(self.n_rays):
             # initialize n_rays number of random directed trident rays
-            theta = np.random.random() * self.theta_max
+            # theta = np.random.random() * self.theta_max
+            theta = np.arccos(1 - AA*np.random.random())
             p1 = self.axial_ray.to_coordinate(np.cos(theta))
 
             # random angle on the ring by counter-clockwise rotation
@@ -188,7 +190,7 @@ class Transducer(list):
                           n=n_rays,
                           trident_angle=trident_angle,
                           theta_max=theta_max)
-
+            print("Initialized transducer #{}".format(te.el_id))
             for tr in te:
                 # TODO move set end point to casting
                 tr.pow_ray.end = interface.intersect_line(tr.pow_ray)
