@@ -36,6 +36,7 @@ def run(json_path, pyd_path):
 
     init_medium_config = config['init_medium']
     init_medium = InitMedium.new_markoil(init_medium_config['boundary'])
+
     T.initialize(init_medium, **transducer_config["element_init_paras"])
 
     bundle_dict = T.cast()
@@ -60,7 +61,7 @@ def run(json_path, pyd_path):
     real_pressure = np.abs(complex_pressure)
     np.save(pyd_path, real_pressure)
 
-    plot_sliced_tensor(real_pressure)
+    plot_sliced_tensor(real_pressure, slicing_axis=2)
 
     verbose = False
     if verbose:
@@ -76,6 +77,7 @@ def run(json_path, pyd_path):
 
 def measure(box:Box, bd):
     pc = np.zeros(box.nxyz, dtype=np.complex128)  # complex pressure
+    c = np.zeros(box.nxyz, dtype=int)
 
     for _bundle_str, tr_list in bd.items():
         print("Bundle:", _bundle_str)
@@ -88,7 +90,7 @@ def measure(box:Box, bd):
         for k in I.getdata():
             # one could just assume I, ph, counter always have the same keys
             # use the Z of last tr because one bundle have the same medium
-            pc[k] = np.sqrt(2 * tr.medium.Z * I[k] / counter[k]) * np.exp(1j * ph[k])
+            pc[k] += np.sqrt(2 * tr.medium.Z * I[k] / counter[k]) * np.exp(1j * ph[k] / counter[k])
 
     return pc
             
