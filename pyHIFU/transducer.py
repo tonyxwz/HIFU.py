@@ -196,8 +196,8 @@ class Transducer(list):
             for tr in te:
                 # TODO move set end point to casting
                 tr.pow_ray.end = interface.intersect_line(tr.pow_ray)
-                # tr.aux_ray1.end = interface.intersect_line(tr.aux_ray1)
-                # tr.aux_ray2.end = interface.intersect_line(tr.aux_ray2)
+                tr.aux_ray1.end = interface.intersect_line(tr.aux_ray1)
+                tr.aux_ray2.end = interface.intersect_line(tr.aux_ray2)
 
     def cast(self, mc=[]):
         """ cast all the inital tridents towards a MediaComplex instance `mc`
