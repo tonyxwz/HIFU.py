@@ -175,7 +175,7 @@ class Transducer(list):
                                  freq=self.frequency,
                                  nature_f=self.nature_focus))
 
-    def initialize(self, init_medium, n_rays=None, trident_angle=None, theta_max=None):
+    def initialize(self, init_medium, n_rays=None, trident_angle=None, theta_max=None, verbose=False):
         self.init_medium = init_medium
         n_rays = n_rays
         trident_angle = trident_angle
@@ -183,14 +183,14 @@ class Transducer(list):
 
         interface = self.init_medium.shape[0]
         seed = int(time.time())
-        print("random seed:", seed)
-        np.random.random(seed)
+        if verbose: print("random seed:", seed)
+        np.random.seed(seed)
         for te in self:
             te.initialize(self.init_medium, initial_phase=0,
                           n=n_rays,
                           trident_angle=trident_angle,
                           theta_max=theta_max)
-            print("Initialized transducer #{}".format(te.el_id))
+            if verbose: print("Initialized transducer #{}".format(te.el_id))
             for tr in te:
                 # TODO move set end point to casting
                 tr.pow_ray.end = interface.intersect_line(tr.pow_ray)

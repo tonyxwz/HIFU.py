@@ -19,10 +19,10 @@ from pyHIFU.box import Sparse3D
 
 from pyHIFU.visualization.mkplots import plot_transducer, plot_boundary, plot_box
 from pyHIFU.visualization.figure import create_ax
-from pyHIFU.visualization.plot_tensor import plot_sliced_tensor
+from pyHIFU.visualization.plot_tensor import plot_sliced_tensor, plot_pressure_surf
 
 
-def run(json_path, pyd_path):
+def run(json_path, pyd_path, verbose=False):
     start_time = time.time()
     config = readjson(json_path=json_path)
 
@@ -37,51 +37,43 @@ def run(json_path, pyd_path):
     init_medium_config = config['init_medium']
     init_medium = InitMedium.new_markoil(init_medium_config['boundary'])
 
-    T.initialize(init_medium, **transducer_config["element_init_paras"])
+    T.initialize(init_medium, **transducer_config["element_init_paras"], verbose=verbose)
     end_time = time.time()
-    print("initialization:", end_time-start_time, "seconds")
-
+    if verbose: print("--- initialization:", end_time-start_time, "seconds ---")
+    
+    start_time = end_time
     bundle_dict = T.cast()
     end_time = time.time()
-    print("casting time:", end_time-start_time, "seconds")
-
+    if verbose: print("--- casting time:", end_time-start_time, "seconds ---")
+    
     # start sampling
-    start_time = time.time()
+    start_time = end_time
     box_config = config['box']
 
     B = Box(*box_config['min'], *box_config['max'], box_config['step'])
     # print(len(B.lattrix))
 
-    complex_pressure = measure(B, bundle_dict)
+    complex_pressure = measure(B, bundle_dict, verbose=verbose)
 
     end_time = time.time()
-    print("sampling time:", end_time-start_time, "seconds")
-
+    if verbose: print("--- sampling time:", end_time-start_time, "seconds ---")
+    
     if pyd_path is None:
         pyd_path = 'pressure'+'_l'+str(B.lx)+"_n"+str(len(T[0])) + "_t"+str(int(time.time()))
     real_pressure = np.abs(complex_pressure)
-    np.save(pyd_path, real_pressure)
+    np.save('npydata/'+pyd_path, real_pressure)
+    np.save('npydata/'+'c'+pyd_path, complex_pressure)
 
-    plot_sliced_tensor(real_pressure, slicing_axis=2)
-
-    verbose = False
     if verbose:
-        fig = plt.figure()
-        ax = create_ax(fig, 121)
-        plot_transducer(T, ax)
-        plot_boundary(T.init_medium.boundary, ax)
-        plot_box(B, ax, title="Box with Transducer")
+        # TODO plot surface
+        plot_sliced_tensor(real_pressure, slicing_axis=2)
 
-        ax = create_ax(fig, 122)
-
-        plt.show()
-
-def measure(box:Box, bd):
+def measure(box:Box, bd, verbose=False):
     pc = np.zeros(box.nxyz, dtype=np.complex128)  # complex pressure
     c = np.zeros(box.nxyz, dtype=int)
 
     for _bundle_str, tr_list in bd.items():
-        print("Bundle:", _bundle_str)
+        if verbose: print("Bundle:", _bundle_str)
         I = Sparse3D(box.nxyz)
         ph = Sparse3D(box.nxyz)
         counter = Sparse3D(box.nxyz, dtype=int)
@@ -96,7 +88,7 @@ def measure(box:Box, bd):
     return pc
             
 if __name__ == "__main__":
-    config_path = 'data/fix_case1.json'
+    config_path = 'data/test_case1.json'
     pyd_path = None
 
     options, remainder = getopt.getopt(sys.argv[1:], 'i:o:', ['output=', 'input='])
@@ -106,4 +98,4 @@ if __name__ == "__main__":
         elif opt in ('-i', '--input'):
             config_path = arg
 
-    run(config_path, pyd_path)
+    run(config_path, pyd_path, verbose=True)
