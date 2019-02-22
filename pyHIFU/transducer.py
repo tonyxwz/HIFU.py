@@ -1,6 +1,9 @@
 from collections import deque
 import time
 import numpy as np
+from scipy import special, integrate
+from cached_property import cached_property
+
 from .geometric.surfaces import Sphere
 from .geometric.lines import Ray
 from .geometric.surfaces import Plane
@@ -8,8 +11,7 @@ from .geometric.curves import Ring
 from .ray import Trident
 from .io.config import readjson
 from .geometric.vec3 import Vec3
-from scipy import special, integrate
-from pyHIFU.physics import LONGITUDINAL
+from .physics import LONGITUDINAL, SHEAR
 
 
 class TElement(list):
@@ -80,24 +82,24 @@ class TElement(list):
     # .-----------------------.
     # | short-hand properties |
     # '-----------------------'
-    @property
+    @cached_property
     def area(self):
         # area of flat transducer element
         return np.pi * self.radius**2
-    @property
+    @cached_property
     def k(self):
         # wave number, only used in transducer initialization
         return 2*np.pi*self.frequency / self.init_medium.c
-    @property
+    @cached_property
     def ka(self):
         # ka = k * a
         return self.k * self.radius
-    @property
+    @cached_property
     def max_flux(self):
         # from Boris' code
         max_flux = integrate.quad(self.fluxfunc, 0, self.theta_max)
         return max_flux
-    @property
+    @cached_property
     def S0(self):
         """
         From Huub's ThreeRaysV2.m script
@@ -112,10 +114,10 @@ class TElement(list):
         Int = integrate.quad(self.fluxfunc, 0.00000001, np.pi/2)
         S0 = np.sqrt(4*np.pi*self.init_medium.Z[LONGITUDINAL]*self.required_power/Int[0])/self.area
         return S0
-    @property
+    @cached_property
     def wave_length(self):
         return self.init_medium.c / self.frequency
-    @property
+    @cached_property
     def distance_z(self):
         """
         < Biomedical Ultrasound > p158, needed to calculate initial power/intensity

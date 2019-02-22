@@ -3,6 +3,7 @@ from pyHIFU.io.config import readjson
 from pyHIFU.geometric.surfaces import Plane, Sphere
 from pyHIFU.geometric.volumes import Ball, Cuboid, Cylinder
 from pyHIFU.physics import LIQUID, SOLID, SHEAR, LONGITUDINAL
+from cached_property import cached_property
 
 
 SHAPE_CLASS_DICT = {
@@ -61,7 +62,7 @@ class Material(object):
         self.heat_capacity = heat_capacity  #cp
 
 
-    @property
+    @cached_property
     def Z(self):  # impedence z = c * rho
         return self.c * self.density
 

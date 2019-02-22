@@ -1,6 +1,8 @@
 import numpy as np
 from .vec3 import Vec3
 from .vec3 import EPS
+from cached_property import cached_property
+
 
 class Line(object):
     def __init__(self, p, d=None, p2=None):
@@ -30,7 +32,7 @@ class Line(object):
         """ convert position on a line to coordinate """
         return self.p + t * self.d
 
-    @property
+    @cached_property
     def parameters(self):
         return {"p": self.p, "d": self.d}
 

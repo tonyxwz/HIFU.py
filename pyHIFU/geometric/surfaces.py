@@ -2,6 +2,7 @@ import numpy as np
 from .vec3 import Vec3
 from .lines import Line, Ray, Segment
 from .curves import Ring
+from cached_property import cached_property
 
 
 class Plane(object):
@@ -87,11 +88,11 @@ class Circle(Plane):
         if "index" in kw:
             self.index = kw['index']
         
-    @property
+    @cached_property
     def area(self):
         return np.pi * np.power(self.radius, 2)
 
-    @property
+    @cached_property
     def circumference(self):
         return 2 * np.pi * self.radius
 
