@@ -79,6 +79,42 @@ class TElement(list):
                                 medium=init_medium, legacy=[],
                                 wave_type=LONGITUDINAL))
 
+    def cast(self, mc=[]):
+        """cast ray for to media, per transducer element.
+        One can trust this routine because if two rays are from different
+        transducers, they must be in different bundle.
+        
+        Keyword Arguments:
+            mc {MediaComplex} -- media in the HIFU system (default: {[]})
+        
+        Raises:
+            Exception -- Transducer is not initialized
+        
+        Returns:
+            bundle_dict -- a dictionary containing rays sorted by bundle identifier
+        """
+
+        if len(self) == 0:
+            raise Exception("Must initialize Transducer to cast rays.")
+        bundle_dict = dict()
+        for tr in self:
+            # https://docs.python.org/3/tutorial/datastructures.html#using-lists-as-stacks
+            tr_queue = deque([tr])
+            while len(tr_queue):
+                tnow = tr_queue.popleft()
+                if not tnow.bundle_identifier in bundle_dict:
+                    bundle_dict[tnow.bundle_identifier] = []
+                bundle_dict[tnow.bundle_identifier].append(tnow)
+                # TODO
+                # t1, t2 = tnow.reflect(mc)
+                # t3, t4 = tnow.refract(mc)
+                # t1.end = ... t2.end = ... t3.end = ... t4.end = ...
+                # tr_stack.append(t1)
+                # tr_stack.append(t2)
+                # tr_stack.append(t3)
+                # tr_stack.append(t4)
+        return bundle_dict
+
     # .-----------------------.
     # | short-hand properties |
     # '-----------------------'
@@ -206,22 +242,6 @@ class Transducer(list):
 
         bundle_dict = dict()
         for te in self:
-            if len(te) == 0:
-                raise Exception("Must initialize Transducer to cast rays")
-            for tr in te:
-                # https://docs.python.org/3/tutorial/datastructures.html#using-lists-as-stacks
-                tr_stack = [tr]
-                while len(tr_stack):
-                    tnow = tr_stack.pop()
-                    if not tnow.bundle_identifier in bundle_dict:
-                        bundle_dict[tnow.bundle_identifier] = []
-                    bundle_dict[tnow.bundle_identifier].append(tr)
-                    # TODO
-                    # t1, t2 = tnow.reflect(mc)
-                    # t3, t4 = tnow.refract(mc)
-                    # t1.end = ... t2.end = ... t3.end = ... t4.end = ...
-                    # tr_stack.append(t1)
-                    # tr_stack.append(t2)
-                    # tr_stack.append(t3)
-                    # tr_stack.append(t4)
+            b = te.cast(mc)
+            bundle_dict.update(b)
         return bundle_dict
