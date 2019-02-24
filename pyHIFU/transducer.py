@@ -118,9 +118,34 @@ class TElement(list):
                 # tr_stack.append(t4)
         return bundle_dict
 
-    # .-----------------------.
-    # | short-hand properties |
-    # '-----------------------'
+    def Dfunc(self, theta):
+        """
+        helper function D used in `ffa` by convention
+        f[x_] := BesselJ[1, k a Sin[x]]
+        f'[x_] := 1/2 a k (BesselJ[0, a k Sin[x_]] - BesselJ[2, a k Sin[x_]]) Cos[x_]
+        """
+        if theta:
+            var1 = self.ka[LONGITUDINAL] * np.sin(theta)
+            return 2 * special.jv(1, var1) / var1
+        else:
+            return special.jv(0, 0) - special.jv(2, 0)
+
+    def ffa(self, r, theta=None):
+        """
+        calculate pressure at point `r` using "Far Field Approximation"
+
+        `p(r, theta) = area S0 exp(i k r)/(2 pi r) D(theta)`
+
+        with: `area = pi Radius^2`
+        """
+        if theta is None:
+            theta = Vec3.angle_between(r, self.axial_ray.d)
+            r = np.linalg.norm(r)
+
+        term2 = np.exp(1j * self.k[LONGITUDINAL] * r) / (2 * np.pi * r)
+        c_pressure = self.area * self.S0 * term2 * self.Dfunc(theta)
+        return c_pressure
+
     @cached_property
     def area(self):
         # area of flat transducer element
@@ -162,36 +187,6 @@ class TElement(list):
         < Biomedical Ultrasound > p158, needed to calculate initial power/intensity
         """
         return 2.3 * self.radius**2 / self.wave_length
-    # .----------------------.
-    # |   end of properties  |
-    # '----------------------'
-    def Dfunc(self, theta):
-        """
-        helper function D used in `ffa` by convention
-        f[x_] := BesselJ[1, k a Sin[x]]
-        f'[x_] := 1/2 a k (BesselJ[0, a k Sin[x_]] - BesselJ[2, a k Sin[x_]]) Cos[x_]
-        """
-        if theta:
-            var1 = self.ka[LONGITUDINAL] * np.sin(theta)
-            return 2 * special.jv(1, var1) / var1
-        else:
-            return special.jv(0, 0) - special.jv(2, 0)
-
-    def ffa(self, r, theta=None):
-        """
-        calculate pressure at point `r` using "Far Field Approximation"
-
-        `p(r, theta) = area S0 exp(i k r)/(2 pi r) D(theta)`
-
-        with: `area = pi Radius^2`
-        """
-        if theta is None:
-            theta = Vec3.angle_between(r, self.axial_ray.d)
-            r = np.linalg.norm(r)
-
-        term2 = np.exp(1j * self.k[LONGITUDINAL] * r) / (2 * np.pi * r)
-        c_pressure = self.area * self.S0 * term2 * self.Dfunc(theta)
-        return c_pressure
 
 
 class Transducer(list):
@@ -225,7 +220,8 @@ class Transducer(list):
         interface = self.init_medium.shape[0]
         seed = int(time.time())
         if verbose: print("random seed:", seed)
-        np.random.seed(seed)
+        # np.random.seed(18973894)
+        np.random.seed(34839194) 
         for te in self:
             te.initialize(self.init_medium, initial_phase=0,
                           n=n_rays,
