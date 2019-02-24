@@ -1,5 +1,6 @@
 import time
 from collections import deque
+from multiprocessing import Pool, current_process, Manager
 
 import numpy as np
 from cached_property import cached_property
@@ -13,6 +14,23 @@ from .io.config import readjson
 from .physics import LONGITUDINAL, SHEAR
 from .ray import Trident
 
+
+def init_kernel_func(te, queue, init_medium, initial_phase, n_rays, trident_angle, theta_max, verbose):
+    te.initialize(init_medium,
+                  initial_phase=initial_phase,
+                  n=n_rays,
+                  trident_angle=trident_angle,
+                  theta_max=theta_max)
+    interface = init_medium.shape[0]
+    for tr in te:
+        # TODO move set end point to casting
+        tr.pow_ray.end = interface.intersect_line(tr.pow_ray)
+        tr.aux_ray1.end = interface.intersect_line(tr.aux_ray1)
+        tr.aux_ray2.end = interface.intersect_line(tr.aux_ray2)
+    if verbose:
+        pname = current_process().name
+        print(f"TE #{te.el_id} initialized by {pname}")
+    queue.put(te)
 
 class TElement(list):
     """ tranducer element class """
@@ -45,7 +63,7 @@ class TElement(list):
         self.n_rays = n
         self.init_medium = init_medium
         # self.fluxfunc = lambda x: np.sin(x) * (2 * special.jv(1, self.ka * x) / (self.ka * x) )**2
-        self.initial_phase = initial_phase*np.random.random()
+        self.initial_phase = initial_phase
         vr = self.axial_ray.perpendicularDirection()
         vr = Vec3.rotate(vr, self.axial_ray.d, np.random.random()*np.pi*2)
         for i in range(self.n_rays):
@@ -211,28 +229,47 @@ class Transducer(list):
                                  freq=self.frequency,
                                  nature_f=self.nature_focus))
 
-    def initialize(self, init_medium, n_rays=None, trident_angle=None, theta_max=None, verbose=False):
+    def initialize(self, init_medium, n_rays=None, trident_angle=None, theta_max=None,
+                   n_core=None, verbose=False):
         self.init_medium = init_medium
         n_rays = n_rays
         trident_angle = trident_angle
         theta_max = theta_max
-
+        initial_phase = 0
         interface = self.init_medium.shape[0]
         seed = int(time.time())
         if verbose: print("random seed:", seed)
         # np.random.seed(18973894)
-        np.random.seed(34839194) 
-        for te in self:
-            te.initialize(self.init_medium, initial_phase=0,
-                          n=n_rays,
-                          trident_angle=trident_angle,
-                          theta_max=theta_max)
-            if verbose: print("Initialized transducer #{}".format(te.el_id))
-            for tr in te:
-                # TODO move set end point to casting
-                tr.pow_ray.end = interface.intersect_line(tr.pow_ray)
-                tr.aux_ray1.end = interface.intersect_line(tr.aux_ray1)
-                tr.aux_ray2.end = interface.intersect_line(tr.aux_ray2)
+        np.random.seed(34839194)
+        if n_core is not None:
+            m = Manager()
+            q = m.Queue()
+            pool = Pool(n_core)
+            for te in self:
+                pool.apply_async(init_kernel_func, args=(te, q, self.init_medium,
+                                                         initial_phase,
+                                                         n_rays,
+                                                         trident_angle,
+                                                         theta_max, 
+                                                         verbose))
+            pool.close()
+            pool.join()
+            while not q.empty():
+                te_ = q.get()
+                self[te_.el_id] = te_
+        else:
+            for te in self:
+                te.initialize(self.init_medium,
+                              initial_phase=initial_phase,
+                              n=n_rays,
+                              trident_angle=trident_angle,
+                              theta_max=theta_max)
+                if verbose: print("Initialized transducer #{}".format(te.el_id))
+                for tr in te:
+                    # TODO move set end point to casting
+                    tr.pow_ray.end = interface.intersect_line(tr.pow_ray)
+                    tr.aux_ray1.end = interface.intersect_line(tr.aux_ray1)
+                    tr.aux_ray2.end = interface.intersect_line(tr.aux_ray2)
 
     def cast(self, mc=[]):
         """ cast all the inital tridents towards a MediaComplex instance `mc`

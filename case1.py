@@ -91,7 +91,7 @@ def measure(box:Box, bd, verbose=False):
     return pc
 
 
-def run_mp(json_path, pyd_path, verbose=False, n_core=10):
+def run_mp(json_path, pyd_path, verbose=False, n_core=4):
     start_time = time.time()
     config = readjson(json_path=json_path)
 
@@ -106,7 +106,8 @@ def run_mp(json_path, pyd_path, verbose=False, n_core=10):
     init_medium_config = config['init_medium']
     init_medium = InitMedium.new_markoil(init_medium_config['boundary'])
 
-    T.initialize(init_medium, **transducer_config["element_init_paras"], verbose=verbose)
+    T.initialize(init_medium, **transducer_config["element_init_paras"],
+                  verbose=verbose, n_core=n_core)
     end_time = time.time()
     if verbose: print("--- initialization:", end_time-start_time, "seconds ---")
     
@@ -118,7 +119,7 @@ def run_mp(json_path, pyd_path, verbose=False, n_core=10):
     # parallelization, give transducer casting and measuring job to process pool
     pool = Pool(n_core)  # process worker pool, 10 CPU cores
     m = Manager()
-    cpq = m.Queue()  # "Q"ueue for process to communicate complex "P"ressure
+    cpq = m.Queue()  # "Q"ueue for process to communicate "C"omplex "P"ressure
     lock = Lock()
 
     for te in T:
@@ -152,12 +153,12 @@ def measure_kernel(te: TElement, box: Box, mc: MediaComplex, q, verbose):
     """ measuring process kernel function """
     pc = np.zeros(box.nxyz, dtype=np.complex128)
     pname = current_process().name
-    if verbose: print(f"TE #{te.el_id} is assigned to proc {pname}")
+    if verbose: print(f"TE #{te.el_id} measured by proc {pname}")
     # TODO move te.initialize to here
     bundle_dict = te.cast(mc)
     if verbose: print(f"TE #{te.el_id} casted")
     for _bundle_str, tr_list in bundle_dict.items():
-        if verbose: print(f"Bundle{_bundle_str}")
+        if verbose: print(f"Bundle: {_bundle_str}")
         I = Sparse3D(box.nxyz)
         ph = Sparse3D(box.nxyz)
         counter = Sparse3D(box.nxyz, dtype=int)
@@ -172,7 +173,7 @@ def measure_kernel(te: TElement, box: Box, mc: MediaComplex, q, verbose):
     
 
 if __name__ == "__main__":
-    config_path = 'data/test_case1.json'
+    config_path = 'data/fix_case1.json'
     pyd_path = None
 
     options, remainder = getopt.getopt(sys.argv[1:], 'i:o:', ['output=', 'input='])
@@ -181,13 +182,13 @@ if __name__ == "__main__":
             pyd_path = arg
         elif opt in ('-i', '--input'):
             config_path = arg
-    print("500 rays per transducer for comparison")
-    t1 = time.time()
-    run(config_path, pyd_path, verbose=False)
-    t2 = time.time()
-    print(f"serial processing cost {t2-t1} seconds")
+    # print("500 rays per transducer for comparison")
+    # t1 = time.time()
+    # run(config_path, pyd_path, verbose=False)
+    # t2 = time.time()
+    # print(f"serial processing cost {t2-t1} seconds")
 
     t3 = time.time()
-    run_mp(config_path, pyd_path, verbose=False, n_core=12)
+    run_mp(config_path, pyd_path, verbose=True, n_core=8)
     t4 = time.time()
     print(f"multi-processing cost {t4-t3} seconds")
