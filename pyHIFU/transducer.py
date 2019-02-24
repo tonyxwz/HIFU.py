@@ -1,17 +1,17 @@
-from collections import deque
 import time
-import numpy as np
-from scipy import special, integrate
-from cached_property import cached_property
+from collections import deque
 
-from .geometric.surfaces import Sphere
-from .geometric.lines import Ray
-from .geometric.surfaces import Plane
+import numpy as np
+from cached_property import cached_property
+from scipy import integrate, special
+
 from .geometric.curves import Ring
-from .ray import Trident
-from .io.config import readjson
+from .geometric.lines import Ray
+from .geometric.surfaces import Plane, Sphere
 from .geometric.vec3 import Vec3
+from .io.config import readjson
 from .physics import LONGITUDINAL, SHEAR
+from .ray import Trident
 
 
 class TElement(list):
@@ -28,6 +28,9 @@ class TElement(list):
         self.nature_f = nature_f
         self.axial_ray = Ray(self.center, self.nature_f-self.center)
 
+    def fluxfunc(self, x):
+        return np.sin(x) * (2 * special.jv(1, self.ka * x) / (self.ka * x) )**2
+    
     def initialize(self, init_medium, initial_phase, n=100, trident_angle=1e-4, theta_max=np.pi/6):
         """
         initialize all trident rays until they hit markoil interface
@@ -41,7 +44,7 @@ class TElement(list):
         AA = 1 - np.cos(theta_max)
         self.n_rays = n
         self.init_medium = init_medium
-        self.fluxfunc = lambda x: np.sin(x) * (2 * special.jv(1, self.ka * x) / (self.ka * x) )**2
+        # self.fluxfunc = lambda x: np.sin(x) * (2 * special.jv(1, self.ka * x) / (self.ka * x) )**2
         self.initial_phase = initial_phase*np.random.random()
         vr = self.axial_ray.perpendicularDirection()
         vr = Vec3.rotate(vr, self.axial_ray.d, np.random.random()*np.pi*2)
