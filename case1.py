@@ -118,21 +118,19 @@ def run_mp(json_path, pyd_path, verbose=False, n_core=4):
 
     # parallelization, give transducer casting and measuring job to process pool
     pool = Pool(n_core)  # process worker pool, 10 CPU cores
-    m = Manager()
-    cpq = m.Queue()  # "Q"ueue for process to communicate "C"omplex "P"ressure
-    lock = Lock()
 
+    async_results = []
     for te in T:
-        pool.apply_async(measure_kernel, args=(te, B, mc, cpq, verbose))
-        # print(ar.get())
+        ar = pool.apply_async(measure_kernel, args=(te, B, mc, verbose))
+        async_results.append(ar)
     pool.close()
     pool.join()
     if verbose: print("---  all process finished  ---")
 
     complex_pressure = np.zeros(B.nxyz, dtype=np.complex128)
     
-    while not cpq.empty():
-        complex_pressure += cpq.get()
+    for r in async_results:
+        complex_pressure += r.get()
     
     end_time = time.time()
     if verbose: print("--- casting time:", end_time-start_time, "seconds ---")
@@ -149,31 +147,31 @@ def run_mp(json_path, pyd_path, verbose=False, n_core=4):
         plot_sliced_tensor(real_pressure, slicing_axis=2)
 
 
-def measure_kernel(te: TElement, box: Box, mc: MediaComplex, q, verbose):
+def measure_kernel(te: TElement, box: Box, mc: MediaComplex, verbose, printlock=None):
     """ measuring process kernel function """
     pc = np.zeros(box.nxyz, dtype=np.complex128)
     pname = current_process().name
-    if verbose: print(f"TE #{te.el_id} measured by proc {pname}")
+    if verbose: print(f"TE #{te.el_id} assigned to {pname}")
     # TODO move te.initialize to here
     bundle_dict = te.cast(mc)
-    if verbose: print(f"TE #{te.el_id} casted")
+    if verbose: print(f"TE #{te.el_id} casted by {pname}")
     for _bundle_str, tr_list in bundle_dict.items():
-        if verbose: print(f"Bundle: {_bundle_str}")
         I = Sparse3D(box.nxyz)
         ph = Sparse3D(box.nxyz)
         counter = Sparse3D(box.nxyz, dtype=int)
         for tr in tr_list:
             box.intersect_trident(tr, I, ph, counter)
         
+        if verbose: print(f"BD: {_bundle_str} processed by {pname}")
         for k in I.getdata():
             # one could just assume I, ph, counter always have the same keys
             # use the Z of last tr because one bundle have the same medium
             pc[k] += np.sqrt(2 * tr.medium.Z * I[k] / counter[k]) * np.exp(1j * ph[k] / counter[k])
-    q.put(pc)
-    
+    return pc
+
 
 if __name__ == "__main__":
-    config_path = 'data/fix_case1.json'
+    config_path = 'data/test_case1.json'
     pyd_path = None
 
     options, remainder = getopt.getopt(sys.argv[1:], 'i:o:', ['output=', 'input='])
@@ -182,13 +180,13 @@ if __name__ == "__main__":
             pyd_path = arg
         elif opt in ('-i', '--input'):
             config_path = arg
-    # print("500 rays per transducer for comparison")
-    # t1 = time.time()
-    # run(config_path, pyd_path, verbose=False)
-    # t2 = time.time()
-    # print(f"serial processing cost {t2-t1} seconds")
+    print("500 rays per transducer for comparison")
+    t1 = time.time()
+    run(config_path, pyd_path, verbose=False)
+    t2 = time.time()
+    print(f"serial processing cost {t2-t1} seconds")
 
     t3 = time.time()
-    run_mp(config_path, pyd_path, verbose=True, n_core=8)
+    run_mp(config_path, pyd_path, verbose=False, n_core=8)
     t4 = time.time()
     print(f"multi-processing cost {t4-t3} seconds")

@@ -15,7 +15,11 @@ from .physics import LONGITUDINAL, SHEAR
 from .ray import Trident
 
 
-def init_kernel_func(te, queue, init_medium, initial_phase, n_rays, trident_angle, theta_max, verbose):
+def te_init_wrapper(el_id, center, radius, power, freq, nature_f,
+                    init_medium, initial_phase, n_rays, trident_angle,theta_max,
+                    verbose, parrallel=False):
+    te = TElement(el_id, center, radius=radius, power=power,
+                  freq=freq, nature_f=nature_f)
     te.initialize(init_medium,
                   initial_phase=initial_phase,
                   n=n_rays,
@@ -23,14 +27,13 @@ def init_kernel_func(te, queue, init_medium, initial_phase, n_rays, trident_angl
                   theta_max=theta_max)
     interface = init_medium.shape[0]
     for tr in te:
-        # TODO move set end point to casting
         tr.pow_ray.end = interface.intersect_line(tr.pow_ray)
         tr.aux_ray1.end = interface.intersect_line(tr.aux_ray1)
         tr.aux_ray2.end = interface.intersect_line(tr.aux_ray2)
     if verbose:
         pname = current_process().name
         print(f"TE #{te.el_id} initialized by {pname}")
-    queue.put(te)
+    return te
 
 class TElement(list):
     """ tranducer element class """
@@ -211,32 +214,41 @@ class Transducer(list):
     """ HIFU Transducer: as list of elements """
     def __init__(self,
                  nature_focus=0, actual_focus=0, focus_diameter=0, frequency=0,
-                 element_properties=None, element_coordinates=None,
-                 element_init_paras=None):
+                 element_coordinates=None, element_radius=None, element_power=None,
+                 element_properties=None, **kw):
         super().__init__()
         # self.sphere = Sphere(**sphere_configs)
         self.element_coordinates = element_coordinates
         self.nature_focus = nature_focus              # nature focus of the transducer sphere
         self.actual_focus = actual_focus              # ultrasound focus
         self.focus_diameter = focus_diameter          # diameter of the focus area
-        self.element_properties = element_properties  # radius of transducer element
+        self.element_radius = (element_radius or element_properties['radius'])  # radius of transducer element
+        self.element_power = element_power or element_properties['power']
+        self.element_properties = element_properties
         self.frequency = frequency                    # frequency of the US emitted
-
-        for i,co in enumerate(self.element_coordinates):
-            self.append(TElement(i, co,
-                                 radius=self.element_properties["radius"],
-                                 power=self.element_properties["power"],
-                                 freq=self.frequency,
-                                 nature_f=self.nature_focus))
 
     def initialize(self, init_medium, n_rays=None, trident_angle=None, theta_max=None,
                    n_core=None, verbose=False):
+        """ [DEPRECATED] initialize transducer directly instead.
+
+        initialize the transducer element and cast rays in init medium
+        
+        Arguments:
+            init_medium {InitMedium} -- initial medium e.g. lossless and markoil
+        
+        Keyword Arguments:
+            n_rays {int} -- number of ray per transducer (default: {None})
+            trident_angle {float64} -- angle between pow_ray and aux_ray (default: {None})
+            theta_max {float} -- angle between which rays are casted from transducer (default: {None})
+            n_core {int} -- number of cpu core to use (default: {None})
+            verbose {bool} -- whether to print info or not (default: {False})
+        """
+
         self.init_medium = init_medium
         n_rays = n_rays
         trident_angle = trident_angle
         theta_max = theta_max
         initial_phase = 0
-        interface = self.init_medium.shape[0]
         seed = int(time.time())
         if verbose: print("random seed:", seed)
         # np.random.seed(18973894)
@@ -245,34 +257,49 @@ class Transducer(list):
             m = Manager()
             q = m.Queue()
             pool = Pool(n_core)
-            for te in self:
-                pool.apply_async(init_kernel_func, args=(te, q, self.init_medium,
-                                                         initial_phase,
-                                                         n_rays,
-                                                         trident_angle,
-                                                         theta_max, 
-                                                         verbose))
+            async_results = []
+            for i,co in enumerate(self.element_coordinates):
+                ar = pool.apply_async(te_init_wrapper,
+                                      args=(i, co,
+                                            self.element_radius,
+                                            self.element_power,
+                                            self.frequency,
+                                            self.nature_focus,
+                                            self.init_medium,
+                                            initial_phase,
+                                            n_rays,
+                                            trident_angle,
+                                            theta_max, 
+                                            verbose,
+                                            True))
+                async_results.append(ar)
             pool.close()
             pool.join()
-            while not q.empty():
-                te_ = q.get()
-                self[te_.el_id] = te_
+            for ar in async_results:
+                te = ar.get()
+                self.append(te)
         else:
-            for te in self:
-                te.initialize(self.init_medium,
-                              initial_phase=initial_phase,
-                              n=n_rays,
-                              trident_angle=trident_angle,
-                              theta_max=theta_max)
+            for i,co in enumerate(self.element_coordinates):
+                te = te_init_wrapper(
+                    i, co,
+                    self.element_radius,
+                    self.element_power,
+                    self.frequency,
+                    self.nature_focus,
+                    self.init_medium,
+                    initial_phase,
+                    n_rays,
+                    trident_angle,
+                    theta_max,
+                    verbose
+                )
                 if verbose: print("Initialized transducer #{}".format(te.el_id))
-                for tr in te:
-                    # TODO move set end point to casting
-                    tr.pow_ray.end = interface.intersect_line(tr.pow_ray)
-                    tr.aux_ray1.end = interface.intersect_line(tr.aux_ray1)
-                    tr.aux_ray2.end = interface.intersect_line(tr.aux_ray2)
+                self.append(te)
 
     def cast(self, mc=[]):
-        """ cast all the inital tridents towards a MediaComplex instance `mc`
+        """ [DEPRECATED] use cast in TElement class instead
+        
+        cast all the inital tridents towards a MediaComplex instance `mc`
         return dictionary of tridents sorted by bundle identifier string
         """
 

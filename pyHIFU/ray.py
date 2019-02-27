@@ -3,9 +3,9 @@ from copy import copy as shlwcopy
 import numpy as np
 from .geometric.lines import Ray as GeoRay
 from .geometric.surfaces import Plane
-from pyHIFU.physics.acoustics import snell#, fresnel
+from .physics.acoustics import snell#, fresnel
 # from pyHIFU.geometric.voxel import Voxel
-from pyHIFU.physics import LONGITUDINAL, SHEAR, SOLID, LIQUID
+from .physics import LONGITUDINAL, SHEAR, SOLID, LIQUID
 
 class Ray(GeoRay):
     def __init__(self, start=None, direction=None, wave_type=LONGITUDINAL, medium=None):
