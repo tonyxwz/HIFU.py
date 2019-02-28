@@ -19,12 +19,13 @@ HIFU simulation in python, with Trident ray tracing
 
 ## Trident initialization
 
-1. accurate pressure $\hat p$ is calculated from far field approximation using
-`pyHIFU.transducer.TElement.ffa` at $len0$ (`pyHIFU.transducer.TElement.distance_z`),
+1. accurate pressure ![\hat p](https://latex.codecogs.com/gif.download?%5Chat%20p) is calculated from far field approximation using
+`pyHIFU.transducer.TElement.ffa` at `len0` (`pyHIFU.transducer.TElement.distance_z`),
 which is the minimal distance that far-field approximation holds.
-2. Intensity $I_0={\lvert \hat p\rvert^2}/{2 Z}$
-3. Power $P_0=I0 \cdot A$, $A$ is the area formed three intersection points with a plane
-perpendicular to power ray at a point, in this case is $len0$.
+2. Intensity ![I_0={\lvert \hat p\rvert^2}/{2 Z}](https://latex.codecogs.com/gif.latex?I_0%3D%7B%5Clvert%20%5Chat%20p%5Crvert%5E2%7D/%7B2%20Z%7D)
+3. Power ![P_0=I0 \cdot A](https://latex.codecogs.com/gif.latex?P_0%3DI0%20%5Ccdot%20A),
+`A` is the area formed three intersection points with a plane
+perpendicular to power ray at a point, in this case is `len0`.
 
 ## HIFU Routine
 
@@ -42,7 +43,7 @@ An example is in [`case1.py`](./case1.py)
     - for each bundle, measure accumulated intensity, phase and counter for each
     `pyHIFU.Box.Cube`
     - calculate complex pressure using
-    $pressure = \sqrt{2 Z I_{mean}} \cdot e^{i \phi_{mean}}$
+    ![pressure = \sqrt{2 Z I_{mean}} \cdot e^{i \phi_{mean}}](https://latex.codecogs.com/gif.latex?pressure%20%3D%20%5Csqrt%7B2%20Z%20I_%7Bmean%7D%7D%20%5Ccdot%20e%5E%7Bi%20%5Cphi_%7Bmean%7D%7D)
     - return this complex pressure to calling func and free other memories
 
 5. accumulate the complex pressure from all transducers.
