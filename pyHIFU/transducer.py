@@ -15,43 +15,6 @@ from .physics import LONGITUDINAL, SHEAR
 from .ray import Trident
 
 
-def te_init_wrapper(el_id,
-                    center,
-                    radius,
-                    power,
-                    freq,
-                    nature_f,
-                    init_medium,
-                    initial_phase,
-                    n_rays,
-                    trident_angle,
-                    theta_max,
-                    verbose,
-                    parrallel=False):
-    te = TElement(
-        el_id,
-        center,
-        radius=radius,
-        power=power,
-        freq=freq,
-        nature_f=nature_f)
-    te.initialize(
-        init_medium,
-        initial_phase=initial_phase,
-        n=n_rays,
-        trident_angle=trident_angle,
-        theta_max=theta_max)
-    interface = init_medium.shape[0]
-    for tr in te:
-        tr.pow_ray.end = interface.intersect_line(tr.pow_ray)
-        tr.aux_ray1.end = interface.intersect_line(tr.aux_ray1)
-        tr.aux_ray2.end = interface.intersect_line(tr.aux_ray2)
-    if verbose:
-        pname = current_process().name
-        print(f"TE #{te.el_id} initialized by {pname}")
-    return te
-
-
 class TElement(list):
     """ tranducer element class """
 
@@ -313,8 +276,6 @@ class Transducer(list):
         # np.random.seed(18973894)
         np.random.seed(34839194)
         if n_core is not None:
-            m = Manager()
-            q = m.Queue()
             pool = Pool(n_core)
             async_results = []
             for i, co in enumerate(self.element_coordinates):
@@ -352,3 +313,64 @@ class Transducer(list):
             b = te.cast(mc)
             bundle_dict.update(b)
         return bundle_dict
+
+
+def te_init_wrapper(el_id,
+                    center,
+                    radius,
+                    power,
+                    freq,
+                    nature_f,
+                    init_medium,
+                    initial_phase,
+                    n_rays,
+                    trident_angle,
+                    theta_max,
+                    verbose,
+                    parrallel=False):
+    """[DEPRECATED] multiprocessing should only be involved in HIFU module, use
+    `pyHIFU.HIFU` instead
+    
+    Arguments:
+        el_id {int} -- Element ID
+        center {ndarray(1,3)} -- center of the transducer element
+        radius {float} -- radius of transducer
+        power {float} -- total power of transducer
+        freq {float} -- frequence
+        nature_f {ndarray(1,3)} -- nature focus
+        init_medium {InitMedium} -- init medium
+        initial_phase {float} -- init phase
+        n_rays {int} -- number of rays from initial cast in init medium
+        trident_angle {float} -- angle between pow_ray and aux_ray
+        theta_max {float} -- angle between which rays are casted from transducer
+        verbose {Bool} -- print info
+    
+    Keyword Arguments:
+        parrallel {bool} -- running in multiprocessing (default: {False})
+    
+    Returns:
+        TElement -- Transducer element instance
+    """
+
+    te = TElement(
+        el_id,
+        center,
+        radius=radius,
+        power=power,
+        freq=freq,
+        nature_f=nature_f)
+    te.initialize(
+        init_medium,
+        initial_phase=initial_phase,
+        n=n_rays,
+        trident_angle=trident_angle,
+        theta_max=theta_max)
+    interface = init_medium.shape[0]
+    for tr in te:
+        tr.pow_ray.end = interface.intersect_line(tr.pow_ray)
+        tr.aux_ray1.end = interface.intersect_line(tr.aux_ray1)
+        tr.aux_ray2.end = interface.intersect_line(tr.aux_ray2)
+    if verbose:
+        pname = current_process().name
+        print(f"TE #{te.el_id} initialized by {pname}")
+    return te
