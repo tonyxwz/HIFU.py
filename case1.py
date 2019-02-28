@@ -14,6 +14,7 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 from pylint.lint import multiprocessing
 
+from pyHIFU import HIFU
 from pyHIFU.box import Box, Sparse3D
 from pyHIFU.io.config import readjson
 from pyHIFU.physics.medium import InitMedium, MediaComplex
@@ -32,7 +33,7 @@ def run(json_path, pyd_path, verbose=False):
     transducer_config = config['transducer']
     coor_file_path = "data/transducer_position.txt"
     textarray = np.loadtxt(coor_file_path)
-    coordinates = textarray[::,1:]
+    coordinates = textarray[::, 1:]
     T = Transducer(element_coordinates=coordinates, **transducer_config)
 
     mc = MediaComplex(config_json=config)
@@ -40,15 +41,20 @@ def run(json_path, pyd_path, verbose=False):
     init_medium_config = config['init_medium']
     init_medium = InitMedium.new_markoil(init_medium_config['boundary'])
 
-    T.initialize(init_medium, **transducer_config["element_init_paras"], verbose=verbose)
+    T.initialize(
+        init_medium,
+        **transducer_config["element_init_paras"],
+        verbose=verbose)
     end_time = time.time()
-    if verbose: print("--- initialization:", end_time-start_time, "seconds ---")
-    
+    if verbose:
+        print("--- initialization:", end_time - start_time, "seconds ---")
+
     start_time = end_time
-    bundle_dict = T.cast()
+    bundle_dict = T.cast(mc)
     end_time = time.time()
-    if verbose: print("--- casting time:", end_time-start_time, "seconds ---")
-    
+    if verbose:
+        print("--- casting time:", end_time - start_time, "seconds ---")
+
     # start sampling
     start_time = end_time
     box_config = config['box']
@@ -59,19 +65,22 @@ def run(json_path, pyd_path, verbose=False):
     complex_pressure = measure(B, bundle_dict, verbose=verbose)
 
     end_time = time.time()
-    if verbose: print("--- sampling time:", end_time-start_time, "seconds ---")
-    
+    if verbose:
+        print("--- sampling time:", end_time - start_time, "seconds ---")
+
     if pyd_path is None:
-        pyd_path = 'pressure'+'_l'+str(B.lx)+"_n"+str(len(T[0])) + "_t"+str(int(time.time()))
+        pyd_path = 'pressure' + '_l' + str(B.lx) + "_n" + str(len(
+            T[0])) + "_t" + str(int(time.time()))
     real_pressure = np.abs(complex_pressure)
-    np.save('npydata/'+pyd_path, real_pressure)
-    np.save('npydata/'+'c'+pyd_path, complex_pressure)
+    np.save('npydata/' + pyd_path, real_pressure)
+    np.save('npydata/' + 'c' + pyd_path, complex_pressure)
 
     if verbose:
         # TODO plot surface
         plot_sliced_tensor(real_pressure, slicing_axis=2)
 
-def measure(box:Box, bd, verbose=False):
+
+def measure(box: Box, bd, verbose=False):
     pc = np.zeros(box.nxyz, dtype=np.complex128)  # complex pressure
     c = np.zeros(box.nxyz, dtype=int)
 
@@ -86,7 +95,8 @@ def measure(box:Box, bd, verbose=False):
         for k in I.getdata():
             # one could just assume I, ph, counter always have the same keys
             # use the Z of last tr because one bundle have the same medium
-            pc[k] += np.sqrt(2 * tr.medium.Z * I[k] / counter[k]) * np.exp(1j * ph[k] / counter[k])
+            pc[k] += np.sqrt(2 * tr.medium.Z * I[k] / counter[k]) * np.exp(
+                1j * ph[k] / counter[k])
 
     return pc
 
@@ -98,7 +108,7 @@ def run_mp(json_path, pyd_path, verbose=False, n_core=4):
     transducer_config = config['transducer']
     coor_file_path = "data/transducer_position.txt"
     textarray = np.loadtxt(coor_file_path)
-    coordinates = textarray[::,1:]
+    coordinates = textarray[::, 1:]
     T = Transducer(element_coordinates=coordinates, **transducer_config)
 
     mc = MediaComplex(config_json=config)
@@ -106,11 +116,15 @@ def run_mp(json_path, pyd_path, verbose=False, n_core=4):
     init_medium_config = config['init_medium']
     init_medium = InitMedium.new_markoil(init_medium_config['boundary'])
 
-    T.initialize(init_medium, **transducer_config["element_init_paras"],
-                  verbose=verbose, n_core=n_core)
+    T.initialize(
+        init_medium,
+        **transducer_config["element_init_paras"],
+        verbose=verbose,
+        n_core=n_core)
     end_time = time.time()
-    if verbose: print("--- initialization:", end_time-start_time, "seconds ---")
-    
+    if verbose:
+        print("--- initialization:", end_time - start_time, "seconds ---")
+
     # start sampling
     start_time = end_time
     box_config = config['box']
@@ -128,26 +142,32 @@ def run_mp(json_path, pyd_path, verbose=False, n_core=4):
     if verbose: print("---  all process finished  ---")
 
     complex_pressure = np.zeros(B.nxyz, dtype=np.complex128)
-    
+
     for r in async_results:
         complex_pressure += r.get()
-    
+
     end_time = time.time()
-    if verbose: print("--- casting time:", end_time-start_time, "seconds ---")
-    
+    if verbose:
+        print("--- casting time:", end_time - start_time, "seconds ---")
+
     # save ndarray to file
     if pyd_path is None:
-        pyd_path = 'pressure'+'_l'+str(B.lx)+"_n"+str(len(T[0])) + "_t"+str(int(time.time()))
+        pyd_path = 'pressure' + '_l' + str(B.lx) + "_n" + str(len(
+            T[0])) + "_t" + str(int(time.time()))
     real_pressure = np.abs(complex_pressure)
-    np.save('npydata/'+pyd_path, real_pressure)
-    np.save('npydata/'+'c'+pyd_path, complex_pressure)
+    np.save('npydata/' + pyd_path, real_pressure)
+    np.save('npydata/' + 'c' + pyd_path, complex_pressure)
 
     if verbose:
         # TODO plot surface
         plot_sliced_tensor(real_pressure, slicing_axis=2)
 
 
-def measure_kernel(te: TElement, box: Box, mc: MediaComplex, verbose, printlock=None):
+def measure_kernel(te: TElement,
+                   box: Box,
+                   mc: MediaComplex,
+                   verbose,
+                   printlock=None):
     """ measuring process kernel function """
     pc = np.zeros(box.nxyz, dtype=np.complex128)
     pname = current_process().name
@@ -161,32 +181,67 @@ def measure_kernel(te: TElement, box: Box, mc: MediaComplex, verbose, printlock=
         counter = Sparse3D(box.nxyz, dtype=int)
         for tr in tr_list:
             box.intersect_trident(tr, I, ph, counter)
-        
+
         if verbose: print(f"BD: {_bundle_str} processed by {pname}")
         for k in I.getdata():
             # one could just assume I, ph, counter always have the same keys
             # use the Z of last tr because one bundle have the same medium
-            pc[k] += np.sqrt(2 * tr.medium.Z * I[k] / counter[k]) * np.exp(1j * ph[k] / counter[k])
+            pc[k] += np.sqrt(2 * tr.medium.Z * I[k] / counter[k]) * np.exp(
+                1j * ph[k] / counter[k])
     return pc
+
+
+def run_hifu(json_path, pyd_path, verbose=False, n_core=4):
+    start_time = time.time()
+    config = readjson(json_path=json_path)
+
+    transducer_config = config['transducer']
+    coor_file_path = "data/transducer_position.txt"
+    textarray = np.loadtxt(coor_file_path)
+    coordinates = textarray[::, 1:]
+    T = Transducer(element_coordinates=coordinates, **transducer_config)
+
+    mc = MediaComplex(config_json=config)
+
+    init_medium_config = config['init_medium']
+    init_medium = InitMedium.new_markoil(init_medium_config['boundary'])
+
+    myhifu = HIFU(T)
+
+    box_config = config['box']
+    B = Box(*box_config['min'], *box_config['max'], box_config['step'])
+    esp = transducer_config["element_init_paras"]
+    cp = myhifu.run(
+        init_medium,
+        mc,
+        B,
+        esp['n_rays'],
+        esp['trident_angle'],
+        esp['theta_max'],
+        n_core=n_core)
+    plot_sliced_tensor(np.abs(cp), slicing_axis=2)
 
 
 if __name__ == "__main__":
     config_path = 'data/test_case1.json'
     pyd_path = None
 
-    options, remainder = getopt.getopt(sys.argv[1:], 'i:o:', ['output=', 'input='])
+    options, remainder = getopt.getopt(sys.argv[1:], 'i:o:',
+                                       ['output=', 'input='])
     for opt, arg in options:
         if opt in ('-o', '--output'):
             pyd_path = arg
         elif opt in ('-i', '--input'):
             config_path = arg
-    print("500 rays per transducer for comparison")
-    t1 = time.time()
-    run(config_path, pyd_path, verbose=False)
-    t2 = time.time()
-    print(f"serial processing cost {t2-t1} seconds")
+    # print("500 rays per transducer for comparison")
+    # t1 = time.time()
+    # run(config_path, pyd_path, verbose=False)
+    # t2 = time.time()
+    # print(f"serial processing cost {t2-t1} seconds")
 
-    t3 = time.time()
-    run_mp(config_path, pyd_path, verbose=False, n_core=8)
-    t4 = time.time()
-    print(f"multi-processing cost {t4-t3} seconds")
+    # t3 = time.time()
+    # run_mp(config_path, pyd_path, verbose=False, n_core=8)
+    # t4 = time.time()
+    # print(f"multi-processing cost {t4-t3} seconds")
+    print(config_path)
+    run_hifu(config_path, pyd_path, verbose=False)
