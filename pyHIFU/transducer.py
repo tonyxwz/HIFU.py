@@ -1,23 +1,68 @@
-from collections import deque
 import time
-import numpy as np
-from scipy import special, integrate
-from cached_property import cached_property
+from collections import deque
+from multiprocessing import Pool, current_process, Manager
 
-from .geometric.surfaces import Sphere
-from .geometric.lines import Ray
-from .geometric.surfaces import Plane
+import numpy as np
+from cached_property import cached_property
+from scipy import integrate, special
+
 from .geometric.curves import Ring
-from .ray import Trident
-from .io.config import readjson
+from .geometric.lines import Ray
+from .geometric.surfaces import Plane, Sphere
 from .geometric.vec3 import Vec3
+from .io.config import readjson
 from .physics import LONGITUDINAL, SHEAR
+from .ray import Trident
+
+
+def te_init_wrapper(el_id,
+                    center,
+                    radius,
+                    power,
+                    freq,
+                    nature_f,
+                    init_medium,
+                    initial_phase,
+                    n_rays,
+                    trident_angle,
+                    theta_max,
+                    verbose,
+                    parrallel=False):
+    te = TElement(
+        el_id,
+        center,
+        radius=radius,
+        power=power,
+        freq=freq,
+        nature_f=nature_f)
+    te.initialize(
+        init_medium,
+        initial_phase=initial_phase,
+        n=n_rays,
+        trident_angle=trident_angle,
+        theta_max=theta_max)
+    interface = init_medium.shape[0]
+    for tr in te:
+        tr.pow_ray.end = interface.intersect_line(tr.pow_ray)
+        tr.aux_ray1.end = interface.intersect_line(tr.aux_ray1)
+        tr.aux_ray2.end = interface.intersect_line(tr.aux_ray2)
+    if verbose:
+        pname = current_process().name
+        print(f"TE #{te.el_id} initialized by {pname}")
+    return te
 
 
 class TElement(list):
     """ tranducer element class """
-    def __init__(self, el_id, center, radius=0, power=0, freq=0,
-                 nature_f=np.array([0,0,0]), **kw):
+
+    def __init__(self,
+                 el_id,
+                 center,
+                 radius=0,
+                 power=0,
+                 freq=0,
+                 nature_f=np.array([0, 0, 0]),
+                 **kw):
         """ only assgin necessary parameters here """
         super().__init__()  # len(self) == 0
         self.el_id = el_id
@@ -26,9 +71,17 @@ class TElement(list):
         self.required_power = power  # needed in ffa
         self.frequency = freq
         self.nature_f = nature_f
-        self.axial_ray = Ray(self.center, self.nature_f-self.center)
+        self.axial_ray = Ray(self.center, self.nature_f - self.center)
 
-    def initialize(self, init_medium, initial_phase, n=100, trident_angle=1e-4, theta_max=np.pi/6):
+    def fluxfunc(self, x):
+        return np.sin(x) * (2 * special.jv(1, self.ka * x) / (self.ka * x))**2
+
+    def initialize(self,
+                   init_medium,
+                   initial_phase,
+                   n=100,
+                   trident_angle=1e-4,
+                   theta_max=np.pi / 6):
         """
         initialize all trident rays until they hit markoil interface
         `init_medium`: e.g. lossless / markoil
@@ -41,21 +94,21 @@ class TElement(list):
         AA = 1 - np.cos(theta_max)
         self.n_rays = n
         self.init_medium = init_medium
-        self.fluxfunc = lambda x: np.sin(x) * (2 * special.jv(1, self.ka * x) / (self.ka * x) )**2
-        self.initial_phase = initial_phase*np.random.random()
+        # self.fluxfunc = lambda x: np.sin(x) * (2 * special.jv(1, self.ka * x) / (self.ka * x) )**2
+        self.initial_phase = initial_phase
         vr = self.axial_ray.perpendicularDirection()
-        vr = Vec3.rotate(vr, self.axial_ray.d, np.random.random()*np.pi*2)
+        vr = Vec3.rotate(vr, self.axial_ray.d, np.random.random() * np.pi * 2)
         for i in range(self.n_rays):
             # initialize n_rays number of random directed trident rays
             # theta = np.random.random() * self.theta_max
-            theta = np.arccos(1 - AA*np.random.random())
+            theta = np.arccos(1 - AA * np.random.random())
             p1 = self.axial_ray.to_coordinate(np.cos(theta))
 
             # random angle on the ring by counter-clockwise rotation
             beta = np.random.random() * np.pi * 2
             v_ = Vec3.rotate(vr, self.axial_ray.d, beta)
 
-            p_end = p1 + Vec3.normalize(v_)*np.sin(theta)
+            p_end = p1 + Vec3.normalize(v_) * np.sin(theta)
             pow_dire = p_end - self.center
             ray_helper = Ray(self.center, pow_dire)
 
@@ -70,62 +123,61 @@ class TElement(list):
             # calculate initial power at theta
             z = self.distance_z[LONGITUDINAL]
             pressure0 = self.ffa(z, theta)
-            I0 = np.abs(pressure0)**2 / (2*self.init_medium.Z[LONGITUDINAL])
-            self.append(Trident(self.center, pow_dire,
-                                self.center, a1_end-self.center,
-                                self.center, a2_end-self.center,
-                                I0, self.frequency, self.initial_phase, len0=z,
-                                el_id=self.el_id, ray_id=self.el_id*self.n_rays+i,
-                                medium=init_medium, legacy=[],
-                                wave_type=LONGITUDINAL))
+            I0 = np.abs(pressure0)**2 / (2 * self.init_medium.Z[LONGITUDINAL])
+            self.append(
+                Trident(
+                    self.center,
+                    pow_dire,
+                    self.center,
+                    a1_end - self.center,
+                    self.center,
+                    a2_end - self.center,
+                    I0,
+                    self.frequency,
+                    self.initial_phase,
+                    len0=z,
+                    el_id=self.el_id,
+                    ray_id=self.el_id * self.n_rays + i,
+                    medium=init_medium,
+                    legacy=[],
+                    wave_type=LONGITUDINAL))
 
-    # .-----------------------.
-    # | short-hand properties |
-    # '-----------------------'
-    @cached_property
-    def area(self):
-        # area of flat transducer element
-        return np.pi * self.radius**2
-    @cached_property
-    def k(self):
-        # wave number, only used in transducer initialization
-        return 2*np.pi*self.frequency / self.init_medium.c
-    @cached_property
-    def ka(self):
-        # ka = k * a
-        return self.k * self.radius
-    @cached_property
-    def max_flux(self):
-        # from Boris' code
-        max_flux = integrate.quad(self.fluxfunc, 0, self.theta_max)
-        return max_flux
-    @cached_property
-    def S0(self):
+    def cast(self, mc=[]):
+        """cast ray for to media, per transducer element.
+        One can trust this routine because if two rays are from different
+        transducers, they must be in different bundle.
+        
+        Keyword Arguments:
+            mc {MediaComplex} -- media in the HIFU system (default: {[]})
+        
+        Raises:
+            Exception -- Transducer is not initialized
+        
+        Returns:
+            bundle_dict -- a dictionary containing rays sorted by bundle identifier
         """
-        From Huub's ThreeRaysV2.m script
-        computes S0 such that flat transducer element generates RequiredPower
-        p(r, theta) = A S0 exp(i k r)/(2 pi r)  D(theta) with:
-        A= area=pi Radius^2
-        D(theta)= 2 J1(Radius*k sin(theta)) / (Radius*k*sin(theta))
-        D = directivity = determines pressure field in direction theta
-        J1=Besselfunction, n=1
-        TODO find which is CORRECT formula
-        """
-        Int = integrate.quad(self.fluxfunc, 0.00000001, np.pi/2)
-        S0 = np.sqrt(4*np.pi*self.init_medium.Z[LONGITUDINAL]*self.required_power/Int[0])/self.area
-        return S0
-    @cached_property
-    def wave_length(self):
-        return self.init_medium.c / self.frequency
-    @cached_property
-    def distance_z(self):
-        """
-        < Biomedical Ultrasound > p158, needed to calculate initial power/intensity
-        """
-        return 2.3 * self.radius**2 / self.wave_length
-    # .----------------------.
-    # |   end of properties  |
-    # '----------------------'
+
+        if len(self) == 0:
+            raise Exception("Must initialize Transducer to cast rays.")
+        bundle_dict = dict()
+        for tr in self:
+            # https://docs.python.org/3/tutorial/datastructures.html#using-lists-as-stacks
+            tr_queue = deque([tr])
+            while len(tr_queue):
+                tnow = tr_queue.popleft()
+                if not tnow.bundle_identifier in bundle_dict:
+                    bundle_dict[tnow.bundle_identifier] = []
+                bundle_dict[tnow.bundle_identifier].append(tnow)
+                # TODO
+                # t1, t2 = tnow.reflect(mc)
+                # t3, t4 = tnow.refract(mc)
+                # t1.end = ... t2.end = ... t3.end = ... t4.end = ...
+                # tr_stack.append(t1)
+                # tr_stack.append(t2)
+                # tr_stack.append(t3)
+                # tr_stack.append(t4)
+        return bundle_dict
+
     def Dfunc(self, theta):
         """
         helper function D used in `ffa` by convention
@@ -154,74 +206,149 @@ class TElement(list):
         c_pressure = self.area * self.S0 * term2 * self.Dfunc(theta)
         return c_pressure
 
+    @cached_property
+    def area(self):
+        # area of flat transducer element
+        return np.pi * self.radius**2
+
+    @cached_property
+    def k(self):
+        # wave number, only used in transducer initialization
+        return 2 * np.pi * self.frequency / self.init_medium.c
+
+    @cached_property
+    def ka(self):
+        # ka = k * a
+        return self.k * self.radius
+
+    @cached_property
+    def max_flux(self):
+        # from Boris' code
+        max_flux = integrate.quad(self.fluxfunc, 0, self.theta_max)
+        return max_flux
+
+    @cached_property
+    def S0(self):
+        """
+        From Huub's ThreeRaysV2.m script
+        computes S0 such that flat transducer element generates RequiredPower
+        p(r, theta) = A S0 exp(i k r)/(2 pi r)  D(theta) with:
+        A= area=pi Radius^2
+        D(theta)= 2 J1(Radius*k sin(theta)) / (Radius*k*sin(theta))
+        D = directivity = determines pressure field in direction theta
+        J1=Besselfunction, n=1
+        TODO find which is CORRECT formula
+        """
+        Int = integrate.quad(self.fluxfunc, 0.00000001, np.pi / 2)
+        S0 = np.sqrt(4 * np.pi * self.init_medium.Z[LONGITUDINAL] *
+                     self.required_power / Int[0]) / self.area
+        return S0
+
+    @cached_property
+    def wave_length(self):
+        return self.init_medium.c / self.frequency
+
+    @cached_property
+    def distance_z(self):
+        """
+        < Biomedical Ultrasound > p158, needed to calculate initial power/intensity
+        """
+        return 2.3 * self.radius**2 / self.wave_length
+
 
 class Transducer(list):
     """ HIFU Transducer: as list of elements """
+
     def __init__(self,
-                 nature_focus=0, actual_focus=0, focus_diameter=0, frequency=0,
-                 element_properties=None, element_coordinates=None,
-                 element_init_paras=None):
+                 nature_focus=0,
+                 actual_focus=0,
+                 focus_diameter=0,
+                 frequency=0,
+                 element_coordinates=None,
+                 element_radius=None,
+                 element_power=None,
+                 element_properties=None,
+                 **kw):
         super().__init__()
         # self.sphere = Sphere(**sphere_configs)
         self.element_coordinates = element_coordinates
-        self.nature_focus = nature_focus              # nature focus of the transducer sphere
-        self.actual_focus = actual_focus              # ultrasound focus
-        self.focus_diameter = focus_diameter          # diameter of the focus area
-        self.element_properties = element_properties  # radius of transducer element
-        self.frequency = frequency                    # frequency of the US emitted
+        self.nature_focus = nature_focus  # nature focus of the transducer sphere
+        self.actual_focus = actual_focus  # ultrasound focus
+        self.focus_diameter = focus_diameter  # diameter of the focus area
+        self.element_radius = (element_radius or element_properties['radius']
+                               )  # radius of transducer element
+        self.element_power = element_power or element_properties['power']
+        self.element_properties = element_properties
+        self.frequency = frequency  # frequency of the US emitted
 
-        for i,co in enumerate(self.element_coordinates):
-            self.append(TElement(i, co,
-                                 radius=self.element_properties["radius"],
-                                 power=self.element_properties["power"],
-                                 freq=self.frequency,
-                                 nature_f=self.nature_focus))
+    def initialize(self,
+                   init_medium,
+                   n_rays=None,
+                   trident_angle=None,
+                   theta_max=None,
+                   n_core=None,
+                   verbose=False):
+        """ [DEPRECATED] initialize transducer directly instead.
 
-    def initialize(self, init_medium, n_rays=None, trident_angle=None, theta_max=None, verbose=False):
+        initialize the transducer element and cast rays in init medium
+        
+        Arguments:
+            init_medium {InitMedium} -- initial medium e.g. lossless and markoil
+        
+        Keyword Arguments:
+            n_rays {int} -- number of ray per transducer (default: {None})
+            trident_angle {float64} -- angle between pow_ray and aux_ray (default: {None})
+            theta_max {float} -- angle between which rays are casted from transducer (default: {None})
+            n_core {int} -- number of cpu core to use (default: {None})
+            verbose {bool} -- whether to print info or not (default: {False})
+        """
+
         self.init_medium = init_medium
         n_rays = n_rays
         trident_angle = trident_angle
         theta_max = theta_max
-
-        interface = self.init_medium.shape[0]
+        initial_phase = 0
         seed = int(time.time())
         if verbose: print("random seed:", seed)
-        np.random.seed(seed)
-        for te in self:
-            te.initialize(self.init_medium, initial_phase=0,
-                          n=n_rays,
-                          trident_angle=trident_angle,
-                          theta_max=theta_max)
-            if verbose: print("Initialized transducer #{}".format(te.el_id))
-            for tr in te:
-                # TODO move set end point to casting
-                tr.pow_ray.end = interface.intersect_line(tr.pow_ray)
-                tr.aux_ray1.end = interface.intersect_line(tr.aux_ray1)
-                tr.aux_ray2.end = interface.intersect_line(tr.aux_ray2)
+        # np.random.seed(18973894)
+        np.random.seed(34839194)
+        if n_core is not None:
+            m = Manager()
+            q = m.Queue()
+            pool = Pool(n_core)
+            async_results = []
+            for i, co in enumerate(self.element_coordinates):
+                ar = pool.apply_async(
+                    te_init_wrapper,
+                    args=(i, co, self.element_radius, self.element_power,
+                          self.frequency, self.nature_focus, self.init_medium,
+                          initial_phase, n_rays, trident_angle, theta_max,
+                          verbose, True))
+                async_results.append(ar)
+            pool.close()
+            pool.join()
+            for ar in async_results:
+                te = ar.get()
+                self.append(te)
+        else:
+            for i, co in enumerate(self.element_coordinates):
+                te = te_init_wrapper(
+                    i, co, self.element_radius, self.element_power,
+                    self.frequency, self.nature_focus, self.init_medium,
+                    initial_phase, n_rays, trident_angle, theta_max, verbose)
+                if verbose:
+                    print("Initialized transducer #{}".format(te.el_id))
+                self.append(te)
 
     def cast(self, mc=[]):
-        """ cast all the inital tridents towards a MediaComplex instance `mc`
+        """ [DEPRECATED] use cast in TElement class instead
+        
+        cast all the inital tridents towards a MediaComplex instance `mc`
         return dictionary of tridents sorted by bundle identifier string
         """
 
         bundle_dict = dict()
         for te in self:
-            if len(te) == 0:
-                raise Exception("Must initialize Transducer to cast rays")
-            for tr in te:
-                # https://docs.python.org/3/tutorial/datastructures.html#using-lists-as-stacks
-                tr_stack = [tr]
-                while len(tr_stack):
-                    tnow = tr_stack.pop()
-                    if not tnow.bundle_identifier in bundle_dict:
-                        bundle_dict[tnow.bundle_identifier] = []
-                    bundle_dict[tnow.bundle_identifier].append(tr)
-                    # TODO
-                    # t1, t2 = tnow.reflect(mc)
-                    # t3, t4 = tnow.refract(mc)
-                    # t1.end = ... t2.end = ... t3.end = ... t4.end = ...
-                    # tr_stack.append(t1)
-                    # tr_stack.append(t2)
-                    # tr_stack.append(t3)
-                    # tr_stack.append(t4)
+            b = te.cast(mc)
+            bundle_dict.update(b)
         return bundle_dict
