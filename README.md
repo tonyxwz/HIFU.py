@@ -19,7 +19,7 @@ HIFU simulation in python, with Trident ray tracing
 
 ## Trident initialization
 
-1. accurate pressure ![\hat p](https://latex.codecogs.com/gif.download?%5Chat%20p) is calculated from far field approximation using
+1. accurate pressure ![\hat p](https://latex.codecogs.com/gif.latex?%5Chat%20p) is calculated from far field approximation using
 `pyHIFU.transducer.TElement.ffa` at `len0` (`pyHIFU.transducer.TElement.distance_z`),
 which is the minimal distance that far-field approximation holds.
 2. Intensity ![I_0={\lvert \hat p\rvert^2}/{2 Z}](https://latex.codecogs.com/gif.latex?I_0%3D%7B%5Clvert%20%5Chat%20p%5Crvert%5E2%7D/%7B2%20Z%7D)
