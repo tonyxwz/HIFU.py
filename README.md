@@ -55,6 +55,21 @@ python standard module `multiprocessing`
 
 ray tracing using CUDA and `numba.cuda.jit`
 
+## Case 1
+
+setting: there's only transducer initial medium markoil (lossless is not possible
+because some zero division problem)
+
+### Result
+
+Transducer is in front the following figure (inside plotting plane)
+
+![case1 slicing x axis](img/case1_x_axis.png "Case 1 slicing on x axis")
+
+can recognize the interference pattern
+
+![case1 slicing z axis](img/case1_z_axis.png "Case 1 slicing on z axis")
+
 ## next steps
 
 - test the method on more complex structures such as finite element method mesh-like surfaces in geometric modules
