@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.sparse import coo_matrix
+from numba import jit, vectorize, cuda
 
 from pyHIFU.geometric.vec3 import EPS, Vec3
 from pyHIFU.geometric.volumes import Cuboid
