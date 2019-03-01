@@ -6,7 +6,7 @@ The only operation needed in sampling box is adding
 import numpy as np
 import cmath
 
-# TODO Tuples can be used as dictionary key because it is inmutable
+# Tuples can be used as dictionary key because it is inmutable
 class Sparse3D():
     def __init__(self, shape, dtype=float):
         self.shape = (int(shape[0]), int(shape[1]), int(shape[2]))

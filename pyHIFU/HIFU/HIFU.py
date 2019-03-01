@@ -1,9 +1,11 @@
-from multiprocessing import current_process, Pool
+import time
+from multiprocessing import Pool, current_process
+
 import numpy as np
 
-from pyHIFU.physics.medium import InitMedium, Medium, MediaComplex
+from pyHIFU.box import Box, Sparse3D
+from pyHIFU.physics.medium import MediaComplex, Medium
 from pyHIFU.transducer import TElement, Transducer
-from pyHIFU.box import Sparse3D, Box
 
 
 class HIFU(object):
@@ -12,6 +14,10 @@ class HIFU(object):
 
     def __init__(self, transducer: Transducer):
         self.transducer = transducer
+        seed = int(time.time())
+        print("random seed:", seed)
+        # np.random.seed(18973894)
+        np.random.seed(34839194)
 
     def set_transducer(self,
                        nature_focus=0,
@@ -29,10 +35,9 @@ class HIFU(object):
                                      element_power, element_properties, **kw)
 
     def run(self,
-            init_medium: InitMedium,
             mc: MediaComplex,
             box: Box,
-            n_rays=500,
+            nrays=500,
             trident_angle=5e-3,
             theta_max=0.1,
             n_core=4,
@@ -51,9 +56,8 @@ class HIFU(object):
                         self.transducer.element_power,
                         self.transducer.frequency,
                         self.transducer.nature_focus,
-                        init_medium,
                         0,  # init phase
-                        n_rays,
+                        nrays,
                         trident_angle,
                         theta_max,
                         mc,  # media complex
@@ -77,9 +81,8 @@ class HIFU(object):
                     self.transducer.element_power,
                     self.transducer.frequency,
                     self.transducer.nature_focus,
-                    init_medium,
                     0,  # init phase
-                    n_rays,
+                    nrays,
                     trident_angle,
                     theta_max,
                     mc,  # media complex
@@ -97,9 +100,8 @@ class HIFU(object):
                        power,
                        freq,
                        nature_f,
-                       init_medium,
                        initial_phase,
-                       n_rays,
+                       nrays,
                        trident_angle,
                        theta_max,
                        mc,
@@ -115,19 +117,13 @@ class HIFU(object):
             power=power,
             freq=freq,
             nature_f=nature_f)
-        te.initialize(
-            init_medium,
+
+        bundle_dict = te.cast(
+            mc=mc,
             initial_phase=initial_phase,
-            n=n_rays,
+            nrays=nrays,
             trident_angle=trident_angle,
             theta_max=theta_max)
-        interface = init_medium.shape[0]
-        for tr in te:
-            tr.pow_ray.end = interface.intersect_line(tr.pow_ray)
-            tr.aux_ray1.end = interface.intersect_line(tr.aux_ray1)
-            tr.aux_ray2.end = interface.intersect_line(tr.aux_ray2)
-
-        bundle_dict = te.cast(mc)
 
         pc = np.zeros(box.nxyz, dtype=np.complex128)
 
@@ -145,8 +141,8 @@ class HIFU(object):
                     1j * ph[k] / counter[k])
         if verbose:
             if parallel:
-                print(f"{pname}: TE# {el_id} processed")
+                print(f"{pname}: TE #{el_id} processed")
             else:
-                print(f"TE# {el_id} is processed")
+                print(f"TE #{el_id} is processed")
 
         return pc

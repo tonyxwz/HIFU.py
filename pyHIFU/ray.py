@@ -221,18 +221,24 @@ class Trident(object):
         for i_, face in enumerate(self.medium.shape):
             t_ = face.intersect_line(line=self.pow_ray, require_t=True)
             if t_ is not None:
-                if t_ < t:
+                if t_ < t and t_ > 0:
                     t = t_
                     i = i_
         self.pow_ray.endt = t
-        self.face_index = i
+        self.exiting_face_index = i
         # TODO is face is a barrelshell, use the tangitial plane instead
-        t1 = self.medium.shape[self.face_index].intersect_line(
+        t1 = self.medium.shape[self.exiting_face_index].intersect_line(
             line=self.aux_ray1, require_t=True, as_plane=True)
         self.aux_ray1.endt = t1
-        t2 = self.medium.shape[self.face_index].intersect_line(
+        t2 = self.medium.shape[self.exiting_face_index].intersect_line(
             line=self.aux_ray2, require_t=True, as_plane=True)
         self.aux_ray2.endt = t2
+
+    def reflect(self):
+        return ['Longit trident', 'Shear trident']
+
+    def refract(self):
+        return ['Longit trident', 'Shear trident']
 
     @property
     def bundle_identifier(self):
@@ -246,14 +252,14 @@ class Trident(object):
     def __str__(self):
         return str(self.__dict__)
 
-    def get_area_at(self, distance):
+    def get_area_at_alt(self, distance):
         p0 = distance * self.pow_ray.unit_vector + self.pow_ray.p
         p1 = distance * self.aux_ray1.unit_vector + self.aux_ray1.p
         p2 = distance * self.aux_ray2.unit_vector + self.aux_ray2.p
         area = np.linalg.norm(np.cross(p1 - p0, p2 - p0)) / 2
         return area
 
-    def get_area_at_alt(self, distance):
+    def get_area_at(self, distance):
         """
         https://proofwiki.org/wiki/Norm_of_Vector_Cross_Product
         """
@@ -282,7 +288,3 @@ class Trident(object):
 
     def attenufactor(self, s):
         return np.exp(-2 * self.medium.attenuation[self.wave_type] * s)
-
-    def trisnell(self, boundary):
-        # get "snelled" tridents, call `powsnell` and `auxsnell`
-        pass

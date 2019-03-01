@@ -41,11 +41,11 @@ class TElement(list):
 
     def initialize(self,
                    init_medium,
-                   initial_phase,
+                   initial_phase=0,
                    n=100,
                    trident_angle=1e-4,
                    theta_max=np.pi / 6):
-        """
+        """ [DEPRECATED] use `te.cast` directly
         initialize all trident rays until they hit markoil interface
         `init_medium`: e.g. lossless / markoil
         `n`: number of rays per transducer
@@ -55,13 +55,13 @@ class TElement(list):
         self.trident_angle = trident_angle
         self.theta_max = theta_max
         AA = 1 - np.cos(theta_max)
-        self.n_rays = n
+        self.nrays = n
         self.init_medium = init_medium
         # self.fluxfunc = lambda x: np.sin(x) * (2 * special.jv(1, self.ka * x) / (self.ka * x) )**2
         self.initial_phase = initial_phase
         vr = self.axial_ray.perpendicularDirection()
         vr = Vec3.rotate(vr, self.axial_ray.d, np.random.random() * np.pi * 2)
-        for i in range(self.n_rays):
+        for i in range(self.nrays):
             # initialize n_rays number of random directed trident rays
             # theta = np.random.random() * self.theta_max
             theta = np.arccos(1 - AA * np.random.random())
@@ -100,38 +100,81 @@ class TElement(list):
                     self.initial_phase,
                     len0=z,
                     el_id=self.el_id,
-                    ray_id=self.el_id * self.n_rays + i,
+                    ray_id=self.el_id * self.nrays + i,
                     medium=init_medium,
                     legacy=[],
                     wave_type=LONGITUDINAL))
 
-    def cast(self, mc=[]):
-        """cast ray for to media, per transducer element.
-        One can trust this routine because if two rays are from different
-        transducers, they must be in different bundle.
-        
-        Keyword Arguments:
-            mc {MediaComplex} -- media in the HIFU system (default: {[]})
-        
-        Raises:
-            Exception -- Transducer is not initialized
-        
-        Returns:
-            bundle_dict -- a dictionary containing rays sorted by bundle identifier
+    def cast(self,
+             nrays=100,
+             mc=[],
+             trident_angle=1e-4,
+             theta_max=np.pi / 6,
+             initial_phase=0):
         """
+        """
+        self.init_medium = mc[0]
+        self.trident_angle = trident_angle
+        self.theta_max = theta_max
+        AA = 1 - np.cos(theta_max)
+        self.nrays = nrays
+        self.initial_phase = initial_phase
+        vr = self.axial_ray.perpendicularDirection()
+        vr = Vec3.rotate(vr, self.axial_ray.d, np.random.random() * np.pi * 2)
 
-        if len(self) == 0:
-            raise Exception("Must initialize Transducer to cast rays.")
         bundle_dict = dict()
-        for tr in self:
-            # https://docs.python.org/3/tutorial/datastructures.html#using-lists-as-stacks
+
+        for i in range(self.nrays):
+            # initialize n_rays number of random directed trident rays
+            # theta = np.random.random() * self.theta_max
+            theta = np.arccos(1 - AA * np.random.random())
+            p1 = self.axial_ray.to_coordinate(np.cos(theta))
+
+            # random angle on the ring by counter-clockwise rotation
+            beta = np.random.random() * np.pi * 2
+            v_ = Vec3.rotate(vr, self.axial_ray.d, beta)
+
+            p_end = p1 + Vec3.normalize(v_) * np.sin(theta)
+            pow_dire = p_end - self.center
+            ray_helper = Ray(self.center, pow_dire)
+
+            # two perpendicular directions for auxrays
+            n_helper = ray_helper.perpendicularDirection()
+            n2_helper = np.cross(pow_dire, n_helper)
+            l = np.tan(self.trident_angle) * np.linalg.norm(pow_dire)
+            assert l > 0
+            a1_end = p_end + Vec3.normalize(n_helper) * l
+            a2_end = p_end + Vec3.normalize(n2_helper) * l
+
+            # calculate initial power at theta
+            z = self.distance_z[LONGITUDINAL]
+            pressure0 = self.ffa(z, theta)
+            I0 = np.abs(pressure0)**2 / (2 * self.init_medium.Z[LONGITUDINAL])
+            tr = Trident(
+                self.center,
+                pow_dire,
+                self.center,
+                a1_end - self.center,
+                self.center,
+                a2_end - self.center,
+                I0,
+                self.frequency,
+                self.initial_phase,
+                len0=z,
+                el_id=self.el_id,
+                ray_id=self.el_id * self.nrays + i,
+                medium=mc[0],
+                legacy=[],
+                wave_type=LONGITUDINAL)
+
+            # https://docs.python.org/3/tutorial/datastructures.html
             tr_queue = deque([tr])
             while len(tr_queue):
                 tnow = tr_queue.popleft()
                 if not tnow.bundle_identifier in bundle_dict:
                     bundle_dict[tnow.bundle_identifier] = []
                 bundle_dict[tnow.bundle_identifier].append(tnow)
-                # TODO
+                # TODO Power limit
                 # t1, t2 = tnow.reflect(mc)
                 # t3, t4 = tnow.refract(mc)
                 # t1.end = ... t2.end = ... t3.end = ... t4.end = ...

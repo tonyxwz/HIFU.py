@@ -46,13 +46,13 @@ class Medium(Material):
     def __init__(self,
                  material_name=None,
                  med_name=None,
-                 med_idx=None,
+                 med_id=None,
                  geometry=None,
                  is_init=False,
                  **kw):
 
         super().__init__(material_name=material_name, **kw)
-        self.idx = med_idx
+        self.id = med_id
         self.name = med_name
         self.is_init = is_init
 
@@ -66,19 +66,19 @@ class MediaComplex(list):
     use adjacency matrix to find neighbours for acoustics related calculation
     """
 
-    def __init__(self, config_list=None, config_file_path=None):
+    def __init__(self, medium_list=None, config_file_path=None):
         super().__init__()
-        if config_list is None:
-            config_list = readjson(json_path=config_file_path)["medium_list"]
+        if medium_list is None:
+            medium_list = readjson(json_path=config_file_path)["medium_list"]
 
-        for item in config_list:
+        for item in medium_list:
             if 'is_init' in item and item['is_init']:
-                self.insert(0, Medium(**item, med_idx=0))
                 for m in self:
-                    m.idx += 1
+                    m.id += 1
+                self.insert(0, Medium(**item, med_id=0))
             else:
                 n = len(self)
-                self.append(Medium(**item, med_idx=n))
+                self.append(Medium(**item, med_id=n))
 
         # adj_mtx[i,j] = [1,2] : 1,2 are the indices of the faces of self[i]
         # adjacent to self[j]
@@ -98,15 +98,15 @@ class MediaComplex(list):
     def from_config(config):
         pass
 
-    def find_next(self, med_idx, side_idx):
+    def find_next(self, med_id, side_id):
         """
         find the index of next medium, given the index of current medium
         and outgoing side `side`
         """
         # TODO: if there's no adjacency, it is adjacent to the air.
         r = []
-        for i, v in enumerate(self.adj_mtx[med_idx]):
-            if side_idx in v:
+        for i, v in enumerate(self.adj_mtx[med_id]):
+            if side_id in v:
                 r.append(i)
         return r
 
