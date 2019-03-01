@@ -1,0 +1,59 @@
+{
+    "transducer":{
+
+        "nature_focus": [0.14, 0, 0],
+
+        "actual_focus": [0.13, 0, 0],
+
+        "focus_diameter": [0.015, 0.006, 0.006],
+
+        "frequency": 1.2e6,
+
+        "element_properties": {
+            "radius": 3.5e-3,
+            "power": 0.9765625
+        },
+
+        "element_init_paras": {
+            "n_rays": 20000,
+            "trident_angle": 5e-3,
+            "theta_max": 0.1
+        }
+    },
+
+    "box":{
+        "max": [0.15, 0.01, 0.01],
+        "min": [0.13,-0.01,-0.01],
+        "step": 0.0002
+    },
+
+    "medium_list": [
+        {
+            "is_init": true,
+            "material_name": "markoil",
+
+            "geometry": {
+                "shape_type": "cuboid",
+                "parameters": {
+                    "o": [-0.02, -1, -1],
+                    "a": [ 0.1,  0,  0],
+                    "b": [   0,  2,  0],
+                    "c": [   0,  0,  2]
+                }
+            }
+        },
+        {
+            "material_name": "muscle",
+
+            "geometry": {
+                "shape_type": "cuboid",
+                "parameters": {
+                    "o": [0.08, -1, -1],
+                    "a": [ 0.1,  0,  0],
+                    "b": [   0,  2,  0],
+                    "c": [   0,  0,  2]
+                }
+            }
+        }
+    ]
+}
