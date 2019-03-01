@@ -120,3 +120,4 @@ dmypy.json
 output.txt
 .vscode/tags
 *.npy
+data/test_case.json
