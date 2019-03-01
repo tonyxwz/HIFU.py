@@ -27,18 +27,21 @@
         "step": 0.0002
     },
 
-    "init_medium": {
-
-        "material_name": "markoil",
-
-        "boundary":{
-            "type": "plane",
-            "p": [0.2, 0, 0],
-            "n": [1, 0, 0]
-        }
-    },
-
     "medium_list": [
+        {
+            "is_init": true,
+            "material_name": "markoil",
+
+            "geometry": {
+                "shape_type": "cuboid",
+                "parameters": {
+                    "o": [  0, -1, -1],
+                    "a": [0.2,  0,  0],
+                    "b": [  0,  2,  0],
+                    "c": [  0,  0,  2]
+                }
+            }
+        }
     ]
 
 }
