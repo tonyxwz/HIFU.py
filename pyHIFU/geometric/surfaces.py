@@ -23,8 +23,8 @@ class Plane(object):
         self.edges = []
 
     def __eq__(self, other):
-        return (Vec3.are_perpendicular(self.p - other.p, self.normal_vector) and
-                Vec3.are_equal(self.normal_vector, other.normal_vector))
+        return (Vec3.are_perpendicular(self.p - other.p, self.normal_vector)
+                and Vec3.are_equal(self.normal_vector, other.normal_vector))
 
     def intersect_line(self, line=None, p0=None, vd=None, require_t=False):
         """ intersection point with a line """
@@ -56,8 +56,8 @@ class Plane(object):
             return False
 
     def has_line(self, line=None):
-        return (self.has_point(point=line.p) and
-                line.is_perpendicular(vector=self.normal_vector))
+        return (self.has_point(point=line.p)
+                and line.is_perpendicular(vector=self.normal_vector))
 
     def n_common_edge(self, other):
         """ return number of common edges """
@@ -82,12 +82,13 @@ class Circle(Plane):
         self.edges = [Ring(self.center, self.radius, self.normal_vector)]
         if radius2 is not None:
             self.radius2 = radius2
-            self.edges.append(Ring(self.center, self.radius2, self.normal_vector))
+            self.edges.append(
+                Ring(self.center, self.radius2, self.normal_vector))
         else:
             self.radius2 = 0
         if "index" in kw:
             self.index = kw['index']
-        
+
     @cached_property
     def area(self):
         return np.pi * np.power(self.radius, 2)
@@ -97,25 +98,26 @@ class Circle(Plane):
         return 2 * np.pi * self.radius
 
     def __eq__(self, other):
-        return (all(self.center == other.center) and
-                all(self.normal_vector == other.normal_vector) and
-                self.radius == other.radius and
-                self.radius2 == other.radius2)
+        return (all(self.center == other.center)
+                and all(self.normal_vector == other.normal_vector)
+                and self.radius == other.radius
+                and self.radius2 == other.radius2)
 
     def has_point(self, point):
         # a point is in the circle if the point is on th plane and
         # the distance to origin is less than radius
         # TODO: support for ellipse
-        return (super().has_point(point) and
-                np.linalg.norm(np.array(point)-self.center) <= self.radius and
-                np.linalg.norm(np.array(point)-self.center) >= self.radius2)
+        return (
+            super().has_point(point)
+            and np.linalg.norm(np.array(point) - self.center) <= self.radius
+            and np.linalg.norm(np.array(point) - self.center) >= self.radius2)
 
 
 class Polygon(Plane):
     def __init__(self, p, vertices, edges, **kw):
         self.vertices = vertices
         self.edges = edges
-    
+
     def __is_polygon(self):
         """ prove the args of `__init__` can form a polygon """
         pass
@@ -125,7 +127,7 @@ class Polygon(Plane):
 
     def has_segment(self, s):
         pass
-    
+
     def is_containing(self, other):
         """
         if all the vertices of `other` are inside `self` AND
@@ -153,12 +155,15 @@ class Rectangle(Plane):
             self.index = kw['index']
 
         self.edges.append(Segment(self.p, self.va))
-        self.edges.append(Segment(self.p+self.va, self.vb))
-        self.edges.append(Segment(self.p+self.va+self.vb, np.negative(self.va)))
-        self.edges.append(Segment(self.p+self.vb, np.negative(self.vb)))
+        self.edges.append(Segment(self.p + self.va, self.vb))
+        self.edges.append(
+            Segment(self.p + self.va + self.vb, np.negative(self.va)))
+        self.edges.append(Segment(self.p + self.vb, np.negative(self.vb)))
 
-        self.vertices = [self.p, self.p+self.va,
-                         self.p+self.va+self.vb, self.p+self.vb]
+        self.vertices = [
+            self.p, self.p + self.va, self.p + self.va + self.vb,
+            self.p + self.vb
+        ]
 
     def __str__(self):
         return str(self.__dict__)
@@ -172,6 +177,7 @@ class Rectangle(Plane):
                 q = q or (e1 == e2)
             ans = ans and q
         return ans
+
     def is_overlapping(self, other):
         """ if all the vertices of one rectangle are inside another rect"""
         return self.has_rect(other) or other.has_rect(self)
@@ -184,10 +190,16 @@ class Rectangle(Plane):
         else:
             return False
 
-    def intersect_line(self, line=None, p0=None, vd=None, require_t=False):
-        p = super().intersect_line(line=line, p0=p0, vd=vd, require_t=require_t)
+    def intersect_line(self,
+                       line=None,
+                       p0=None,
+                       vd=None,
+                       require_t=False,
+                       as_plane=True):
+        p = super().intersect_line(
+            line=line, p0=p0, vd=vd, require_t=require_t)
         if p is not None:
-            if self.has_point(p):
+            if self.has_point(p) or as_plane:
                 return p
         return None
 
@@ -239,8 +251,10 @@ class BarrelShell(object):
         self.length = np.linalg.norm(self.v_axis)
         self.unit_vector = Vec3.normalize(self.v_axis)
         self.axis = Segment(center, v_axis)
-        self.edges = [Ring(self.center, self.radius, self.unit_vector),
-                      Ring(self.center + self.v_axis, self.radius, self.unit_vector)]
+        self.edges = [
+            Ring(self.center, self.radius, self.unit_vector),
+            Ring(self.center + self.v_axis, self.radius, self.unit_vector)
+        ]
         if "index" in kw.keys():
             self.index = kw["index"]
 
@@ -249,8 +263,8 @@ class BarrelShell(object):
             point = np.array(point)
         foot = self.axis.find_foot(point)
         dist = self.axis.distance_to_point(point)
-        return (dist - self.radius < np.finfo(float).eps and
-                self.axis.has_point(foot))
+        return (dist - self.radius < np.finfo(float).eps
+                and self.axis.has_point(foot))
 
     def tan_plane_at(self, point):
         # TODO: calculate tangential plane for acoustics calculation
@@ -258,7 +272,7 @@ class BarrelShell(object):
         foot = l.find_foot(point)
         vn = point - foot
         return Plane(point, vn)
-        
+
     def n_common_edge(self, other):
         """ return number of common edges """
         ans = 0
@@ -269,24 +283,23 @@ class BarrelShell(object):
 
     def __eq__(self, other):
         if type(other) is BarrelShell:
-            return (self.radius == other.radius and 
-                    self.axis == other.axis)
-        else: return False
+            return (self.radius == other.radius and self.axis == other.axis)
+        else:
+            return False
 
     def intersect_line(self, line):
         vn = np.cross(line.d, self.unit_vector)
         pl = Plane(line.p, vn)
         d = pl.distance_to_point(self.center)
-        # l2: 
-        l2 = Segment(self.center+pl.normal_vector*d, self.v_axis)
+        # l2:
+        l2 = Segment(self.center + pl.normal_vector * d, self.v_axis)
         if not pl.has_line(l2):
-            l2 = Segment(self.center-pl.normal_vector*d, self.v_axis)
+            l2 = Segment(self.center - pl.normal_vector * d, self.v_axis)
 
         p_center = l2.intersect_line(line)
         d2 = np.sqrt(self.radius**2 - d**2)
         costheta = np.dot(self.unit_vector, line.d)
-        sintheta = np.sqrt(1-costheta**2)
+        sintheta = np.sqrt(1 - costheta**2)
         t = np.abs(d2 / sintheta)
         p1 = p_center - line.unit_vector * t
         return p1
-

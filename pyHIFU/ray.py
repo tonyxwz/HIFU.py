@@ -3,21 +3,32 @@ from copy import copy as shlwcopy
 import numpy as np
 from .geometric.lines import Ray as GeoRay
 from .geometric.surfaces import Plane
-from .physics.acoustics import snell#, fresnel
+from .physics.acoustics import snell  #, fresnel
 # from pyHIFU.geometric.voxel import Voxel
 from .physics import LONGITUDINAL, SHEAR, SOLID, LIQUID
 
+
 class Ray(GeoRay):
-    def __init__(self, start=None, direction=None, wave_type=LONGITUDINAL, medium=None):
+    def __init__(self,
+                 start=None,
+                 direction=None,
+                 wave_type=LONGITUDINAL,
+                 medium=None):
         super().__init__(start, direction)
-        try: x_inv = 1 / self.d[0]
-        except ZeroDivisionError: x_inv = np.inf
+        try:
+            x_inv = 1 / self.d[0]
+        except ZeroDivisionError:
+            x_inv = np.inf
 
-        try: y_inv = 1 / self.d[1]
-        except ZeroDivisionError: y_inv = np.inf
+        try:
+            y_inv = 1 / self.d[1]
+        except ZeroDivisionError:
+            y_inv = np.inf
 
-        try: z_inv = 1 / self.d[2]
-        except ZeroDivisionError: z_inv = np.inf
+        try:
+            z_inv = 1 / self.d[2]
+        except ZeroDivisionError:
+            z_inv = np.inf
 
         self.d_inv = np.array([x_inv, y_inv, z_inv])
 
@@ -38,6 +49,7 @@ class Ray(GeoRay):
             return self._end
         else:
             raise Exception("Ray is not terminated")
+
     @end.setter
     def end(self, end):
         if not self.terminated:
@@ -45,13 +57,15 @@ class Ray(GeoRay):
             self.terminated = True
         else:
             raise Exception("Ray is already terminated")
+
     @property
     def endt(self):
         """ end of ray in terms of distance travelled on the ray """
         if self.terminated:
-            return (self.end[0]-self.start[0]) / self.d[0]
+            return (self.end[0] - self.start[0]) / self.d[0]
         else:
             raise Exception("Ray is not terminated")
+
     @endt.setter
     def endt(self, endt):
         if not self.terminated:
@@ -60,28 +74,33 @@ class Ray(GeoRay):
         else:
             raise Exception("Ray is already terminated")
 
-
     # @property
     # def wave_number(self):
     #     return
     @property
     def constant1(self):
         pass
+
     @property
     def constant2(self):
         pass
+
     @property
     def constant3(self):
         pass
+
     @property
     def constant4(self):
         pass
+
     @property
     def constant5(self):
         pass
+
     @property
     def constant6(self):
         pass
+
     @property
     def constant7(self):
         pass
@@ -96,16 +115,25 @@ class Ray(GeoRay):
 
 
 class PowRay(Ray):
-    def __init__(self, start=None, direction=None, frequency=0,
-                 wave_type=LONGITUDINAL, polarization=None, initial_phase=None,
+    def __init__(self,
+                 start=None,
+                 direction=None,
+                 frequency=0,
+                 wave_type=LONGITUDINAL,
+                 polarization=None,
+                 initial_phase=None,
                  medium=None):
-        super().__init__(start=start, direction=direction,
-                         wave_type=wave_type, medium=medium)
+        super().__init__(
+            start=start,
+            direction=direction,
+            wave_type=wave_type,
+            medium=medium)
         self.frequency = frequency
         self.polarization = polarization
         self.initial_phase = initial_phase
         self.angular_frequency = 2 * np.pi * self.frequency
-        self.wave_number = self.angular_frequency / self.medium.c[self.wave_type]
+        self.wave_number = self.angular_frequency / self.medium.c[
+            self.wave_type]
         self.wave_length = self.medium.c[self.wave_type] / self.frequency
 
     def snell(self):
@@ -120,8 +148,11 @@ class PowRay(Ray):
 
 
 class AuxRay(Ray):
-    def __init__(self, start=None, direction=None,
-                 wave_type=LONGITUDINAL, medium=None):
+    def __init__(self,
+                 start=None,
+                 direction=None,
+                 wave_type=LONGITUDINAL,
+                 medium=None):
         super().__init__(start, direction, wave_type=wave_type, medium=medium)
         # self.end = 0 # calculate the end of the vector acc. medium
 
@@ -134,26 +165,46 @@ class Trident(object):
     power ray * 1 + auxilliary ray * 2
     """
 
-    def __init__(self, start_pow, dire_pow,
-                 start_aux1, dire_aux1,
-                 start_aux2, dire_aux2,
-                 I0, frequency, initial_phase, len0=0,
-                 el_id=None, ray_id=None, medium=None, legacy=[],
+    def __init__(self,
+                 start_pow,
+                 dire_pow,
+                 start_aux1,
+                 dire_aux1,
+                 start_aux2,
+                 dire_aux2,
+                 I0,
+                 frequency,
+                 initial_phase,
+                 len0=0,
+                 el_id=None,
+                 ray_id=None,
+                 medium=None,
+                 legacy=[],
                  wave_type=LONGITUDINAL):
 
         self.wave_type = wave_type
 
-        self.pow_ray = PowRay(start=start_pow, direction=dire_pow,
-                              frequency=frequency, initial_phase=initial_phase,
-                              wave_type=self.wave_type, medium=medium)
-        self.aux_ray1 = AuxRay(start=start_aux1, direction=dire_aux1,
-                               wave_type=self.wave_type, medium=medium)
-        self.aux_ray2 = AuxRay(start=start_aux2, direction=dire_aux2,
-                               wave_type=self.wave_type, medium=medium)
+        self.pow_ray = PowRay(
+            start=start_pow,
+            direction=dire_pow,
+            frequency=frequency,
+            initial_phase=initial_phase,
+            wave_type=self.wave_type,
+            medium=medium)
+        self.aux_ray1 = AuxRay(
+            start=start_aux1,
+            direction=dire_aux1,
+            wave_type=self.wave_type,
+            medium=medium)
+        self.aux_ray2 = AuxRay(
+            start=start_aux2,
+            direction=dire_aux2,
+            wave_type=self.wave_type,
+            medium=medium)
         self.medium = medium
         # self.med_id = med_id # medium index
-        self.id = ray_id # ray id
-        self.el_id=el_id # element index
+        self.id = ray_id  # ray id
+        self.el_id = el_id  # element index
 
         # Must copy to assign value, shallow copy is enough as str are inmutable
         self.history = shlwcopy(legacy)
@@ -162,6 +213,26 @@ class Trident(object):
         self.I0 = I0  # initial intensity of pow_ray
         self.len0 = len0  # position (on pow_ray) at which initial intensity is calculate, aka distance_z
         self.P0 = self.I0 * self.get_area_at(len0)
+        self.intersect_medium()
+
+    def intersect_medium(self):
+        t = np.inf
+        i = 0
+        for i_, face in enumerate(self.medium.shape):
+            t_ = face.intersect_line(line=self.pow_ray, require_t=True)
+            if t_ is not None:
+                if t_ < t:
+                    t = t_
+                    i = i_
+        self.pow_ray.endt = t
+        self.face_index = i
+        # TODO is face is a barrelshell, use the tangitial plane instead
+        t1 = self.medium.shape[self.face_index].intersect_line(
+            line=self.aux_ray1, require_t=True, as_plane=True)
+        self.aux_ray1.endt = t1
+        t2 = self.medium.shape[self.face_index].intersect_line(
+            line=self.aux_ray2, require_t=True, as_plane=True)
+        self.aux_ray2.endt = t2
 
     @property
     def bundle_identifier(self):
@@ -179,7 +250,7 @@ class Trident(object):
         p0 = distance * self.pow_ray.unit_vector + self.pow_ray.p
         p1 = distance * self.aux_ray1.unit_vector + self.aux_ray1.p
         p2 = distance * self.aux_ray2.unit_vector + self.aux_ray2.p
-        area = np.linalg.norm(np.cross(p1-p0, p2-p0)) / 2
+        area = np.linalg.norm(np.cross(p1 - p0, p2 - p0)) / 2
         return area
 
     def get_area_at_alt(self, distance):
@@ -193,7 +264,7 @@ class Trident(object):
         p1 = plane.intersect_line(self.aux_ray1)
         p2 = plane.intersect_line(self.aux_ray2)
 
-        area = np.linalg.norm(np.cross(p1-p0, p2-p0)) / 2
+        area = np.linalg.norm(np.cross(p1 - p0, p2 - p0)) / 2
         return area
 
     def get_intensity_at(self, d):
@@ -202,7 +273,7 @@ class Trident(object):
         """
         A1 = self.get_area_at(d)
         # TODO add attenuation here (or rename to `get_intensity_at`)
-        I1 = self.P0 * self.attenufactor(d-self.len0) / A1
+        I1 = self.P0 * self.attenufactor(d - self.len0) / A1
         # Q = I1 * 2 * attenuation
         return I1
 
@@ -210,7 +281,7 @@ class Trident(object):
         return self.pow_ray.get_phase_at(d)
 
     def attenufactor(self, s):
-        return np.exp(-2*self.medium.attenuation[self.wave_type]*s)
+        return np.exp(-2 * self.medium.attenuation[self.wave_type] * s)
 
     def trisnell(self, boundary):
         # get "snelled" tridents, call `powsnell` and `auxsnell`
