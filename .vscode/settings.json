@@ -23,5 +23,12 @@
     ],
     "python.unitTest.pyTestEnabled": false,
     "python.unitTest.nosetestsEnabled": false,
-    "python.unitTest.unittestEnabled": true
+    "python.unitTest.unittestEnabled": true,
+    "python.pythonPath": "C:\\Users\\20175506\\AppData\\Local\\Continuum\\anaconda3\\envs\\pyHIFU\\python.exe",
+    "terminal.integrated.shellArgs.windows": [
+        "-NoExit",
+        "-Command",
+        "conda activate pyHIFU"
+    ],
+    "python.terminal.activateEnvironment": false
 }
