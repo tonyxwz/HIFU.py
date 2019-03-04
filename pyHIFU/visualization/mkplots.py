@@ -62,6 +62,7 @@ def plot_TElements(te, ax):
         # plot_ray(tr.aux_ray1, ax, color="g", linestyle="--", linewidth=0.5)
         # plot_ray(tr.aux_ray2, ax, color="g", linestyle="--", linewidth=0.5)
 
+
 def plot_boundary(pl, ax):
     x = pl.p[0]
     vertices = [(x, -0.1, -0.1),
@@ -74,6 +75,7 @@ def plot_boundary(pl, ax):
 
     face.set_facecolor((0, 0, 1, alpha))
     ax.add_collection3d(face)
+
 
 def plot_lattice(X, Y, Z, l, origin, ax, color=[]):
     if len(color):
@@ -88,6 +90,7 @@ def plot_lattice(X, Y, Z, l, origin, ax, color=[]):
     
     lattice = Cuboid(o, a, b, c)
     plot_box(lattice, ax, color=color)
+
 
 def plot_box(b, ax, title="", color=[]):
     alpha = 0.6
@@ -118,20 +121,24 @@ def plot_box(b, ax, title="", color=[]):
         ax.set_zlim(b.o1[2]-1*rangez, b.o1[2]+2*rangez)
         ax.set_zlabel("z (m)")
 
+
 def plot_trident(tr, ax):
     plot_ray(tr.pow_ray, ax, color="m", linestyle="")
     plot_ray(tr.aux_ray1, ax, color="g", linestyle="--")
     plot_ray(tr.aux_ray2, ax, color="g", linestyle="--")
+
 
 def plot_ray(r, ax, color="m", linestyle=""):
     xyz = np.concatenate((r.p, r.end))
     xyz = xyz.reshape((2,3))
     ax.plot(xyz[:,0], xyz[:,1], xyz[:,2], linestyle, color=color)
 
+
 def plot_reflection(tr, interface, ax):
     # TODO: the reflection progress of one transducer on one interface
     # also give resulted shear ray and longitudinal ray different color
     pass
+
 
 if __name__ == "__main__":
     from pyHIFU.ray import AuxRay
