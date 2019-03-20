@@ -7,24 +7,29 @@ class Vec3(object):
     # static methods manipulate a array
     @staticmethod
     def are_equal(a, b):
+        assert len(a) == len(b) == 3
         return all(np.abs(a - b) <= EPS)
 
     @staticmethod
     def are_parallel(a, b):
+        assert len(a) == len(b) == 3
         return all(np.cross(a, b) <= EPS)
     @staticmethod
     def are_perpendicular(a, b):
+        assert len(a) == len(b) == 3
         return a.dot(b) <= EPS
 
     @staticmethod
     def normalize(v):
         # print("vec3::normalize::v:", v)
+        assert len(v) == 3
         if not np.any(v):
             return np.array(v)
         return np.array(v) / np.linalg.norm(v)
 
     @staticmethod
     def distance(p1, p2):
+        assert len(p1) == len(p2) == 3
         np.sqrt(p2 - p1)
     @staticmethod
     def is_infinitesimal(n):
@@ -62,6 +67,7 @@ class Vec3(object):
 
     @staticmethod
     def angle_between(v1, v2):
+        assert len(v1) == len(v2) == 3
         v1 = Vec3.normalize(v1)
         v2 = Vec3.normalize(v2)
         costheta = np.dot(v1, v2)
