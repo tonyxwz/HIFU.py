@@ -7,41 +7,41 @@ PHYSICS_PROPERTIES = {
     "markoil": {
         'material_name': 'markoil',
         'state': LIQUID,
-        'density': 1070,
-        'cL': 1430,
+        'density': 1070.0,
+        'cL': 1430.0,
         'absorption': 1.04,
         'attenuationL': 1.04,
-        'heat_capacity': 4200,
+        'heat_capacity': 4200.0,
         'thermal_conductivity': 0.5
     },
     "lossless": {
         'material_name': 'lossless',
         'state': LIQUID,
-        'cL': 1380,
-        'density': 1030,
+        'cL': 1380.0,
+        'density': 1030.0,
         'attenuationL': 0,
         'absorption': 0
     },
     "muscle": {
         "material_name": "muscle",
         "state": LIQUID,
-        'density': 1010,
-        'cL': 1537,
+        'density': 1010.0,
+        'cL': 1537.0,
         'absorption': None,
         'attenuationL': 5.76,
-        'heat_capacity': 3720,
+        'heat_capacity': 3720.0,
         'thermal_conductivity': 0.537
     },
     'bone': {
         "material_name": "bone",
-        "state": SOLID,
-        'density': 2025,
-        'cL': 3736,
-        'cS': 1995,
+        "state": LIQUID,
+        'density': 2025.0,
+        'cL': 3736.0,
+        'cS': 1995.0,
         'absorption': None,
         'attenuationL': 1.9,
         'attenuationS': 2.8,
-        'heat_capacity': 3720,
+        'heat_capacity': 3720.0,
         'thermal_conductivity': 0.487
     }
 }
