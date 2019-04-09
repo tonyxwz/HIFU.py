@@ -16,7 +16,7 @@ from .ray import Trident
 
 
 class TElement(list):
-    """ tranducer element class """
+    """ transducer element class """
 
     def __init__(self,
                  el_id,
@@ -45,7 +45,7 @@ class TElement(list):
                    n=100,
                    trident_angle=1e-4,
                    theta_max=np.pi / 6):
-        """ [DEPRECATED] use `te.cast` directly
+        """ use `te.cast` directly
         initialize all trident rays until they hit markoil interface
         `init_medium`: e.g. lossless / markoil
         `n`: number of rays per transducer
@@ -123,7 +123,7 @@ class TElement(list):
         vr = Vec3.rotate(vr, self.axial_ray.d, np.random.random() * np.pi * 2)
 
         bundle_dict = dict()
-
+        total_tr_num = 0
         for i in range(self.nrays):
             # initialize n_rays number of random directed trident rays
             # theta = np.random.random() * self.theta_max
@@ -166,22 +166,30 @@ class TElement(list):
                 medium=mc[0],
                 legacy=[],
                 wave_type=LONGITUDINAL)
-
+            power_limit = tr.P0 / 100  # TODO
             # https://docs.python.org/3/tutorial/datastructures.html
-            tr_queue = deque([tr])
+            tr_queue = deque()
+            tr_queue.append(tr)
+            total_tr_num += 1
             while len(tr_queue):
+                # print("before reflect:", len(tr_queue))
                 tnow = tr_queue.popleft()
-                if not tnow.bundle_identifier in bundle_dict:
+                if tnow.P0 < power_limit:
+                    # print("discarded")
+                    continue
+                if tnow.bundle_identifier not in bundle_dict:
                     bundle_dict[tnow.bundle_identifier] = []
                 bundle_dict[tnow.bundle_identifier].append(tnow)
-                # TODO Power limit
-                # t1, t2 = tnow.reflect(mc)
-                # t3, t4 = tnow.refract(mc)
-                # t1.end = ... t2.end = ... t3.end = ... t4.end = ...
-                # tr_stack.append(t1)
-                # tr_stack.append(t2)
-                # tr_stack.append(t3)
-                # tr_stack.append(t4)
+                
+                tr_list = tnow.reflect(mc)
+                for tr_ in tr_list:
+                    tr_queue.append(tr_)
+                    total_tr_num += 1
+                tr_list2 = tnow.refract(mc)
+                for tr_ in tr_list2:
+                    tr_queue.append(tr_)
+                    total_tr_num += 1
+        print(f"total trident num: {total_tr_num}")
         return bundle_dict
 
     def Dfunc(self, theta):
@@ -243,7 +251,6 @@ class TElement(list):
         D(theta)= 2 J1(Radius*k sin(theta)) / (Radius*k*sin(theta))
         D = directivity = determines pressure field in direction theta
         J1=Besselfunction, n=1
-        TODO find which is CORRECT formula
         """
         Int = integrate.quad(self.fluxfunc, 0.00000001, np.pi / 2)
         S0 = np.sqrt(4 * np.pi * self.init_medium.Z[LONGITUDINAL] *
@@ -294,7 +301,7 @@ class Transducer(list):
                    theta_max=None,
                    n_core=None,
                    verbose=False):
-        """ [DEPRECATED] initialize transducer directly instead.
+        """initialize transducer directly instead.
 
         initialize the transducer element and cast rays in init medium
         
@@ -345,7 +352,7 @@ class Transducer(list):
                 self.append(te)
 
     def cast(self, mc=[]):
-        """ [DEPRECATED] use cast in TElement class instead
+        """use cast in TElement class instead
         
         cast all the inital tridents towards a MediaComplex instance `mc`
         return dictionary of tridents sorted by bundle identifier string
@@ -371,7 +378,7 @@ def te_init_wrapper(el_id,
                     theta_max,
                     verbose,
                     parrallel=False):
-    """[DEPRECATED] multiprocessing should only be involved in HIFU module, use
+    """multiprocessing should only be involved in HIFU module, use
     `pyHIFU.HIFU` instead
     
     Arguments:
