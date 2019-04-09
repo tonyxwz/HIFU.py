@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.sparse import coo_matrix
-from numba import jit, vectorize, cuda
+# from numba import jit, vectorize, cuda
 
 from pyHIFU.geometric.vec3 import EPS, Vec3
 from pyHIFU.geometric.volumes import Cuboid
@@ -117,7 +117,7 @@ class Box(Cuboid):
             # one dimension goes out of boundary
             while not (X == X_out+stepX or Y == Y_out+stepY or Z == Z_out+stepZ):
                 if func:
-                    func(X,Y,Z)
+                    func(X, Y, Z)
                 if ax:
                     if not len(color):
                         color = np.random.random((1,3))
