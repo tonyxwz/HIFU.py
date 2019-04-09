@@ -24,21 +24,25 @@ BOUNDARY_CLASS_DICT = {'plane': Plane, 'sphere': Sphere}
 markoil_properties = {
     'material_name': 'markoil',
     'state': LIQUID,
-    'density': 1070,
-    'cL': 1430,
+    'density': 1070.0,
+    'cL': 1430.0,
     'absorption': 1.04,
     'attenuationL': 1.04,
-    'heat_capacity': 4200,
+    'heat_capacity': 4200.0,
     'thermal_conductivity': 0.5
 }
 
 lossless_properties = {
     'material_name': 'lossless',
     'state': LIQUID,
-    'cL': 1380,
-    'density': 1030,
+    'cL': 1380.0,
+    'density': 1030.0,
     'attenuationL': 0,
     'absorption': 0
+}
+
+air_properties = {
+
 }
 
 
@@ -82,17 +86,13 @@ class MediaComplex(list):
 
         # adj_mtx[i,j] = [1,2] : 1,2 are the indices of the faces of self[i]
         # adjacent to self[j]
-        self.adj_mtx = list()
+        self.adj_mtx = np.ones((len(self), len(self))) * -1
 
         # traverse all media (double compare loop)
         for i, item1 in enumerate(self):
-            l = list()
             for j, item2 in enumerate(self):
-                if i == j:
-                    l.append([])
-                else:
-                    l.append(item1.shape.adj_at(item2.shape))
-            self.adj_mtx.append(l)
+                if i != j:
+                    self.adj_mtx[i, j] = item1.shape.adj_at(item2.shape)
 
     @staticmethod
     def from_config(config):
@@ -119,5 +119,5 @@ class MediaComplex(list):
 
 
 if __name__ == "__main__":
-    mc = MediaComplex(config_file_path='data/case2.json')
+    mc = MediaComplex(config_file_path='../../data/case2.json')
     print(mc.adj_mtx)
