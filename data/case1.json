@@ -41,20 +41,6 @@
                     "c": [  0,  0,  2]
                 }
             }
-        },
-        {
-            "is_init": false,
-            "material_name": "muscle",
-
-            "geometry": {
-                "shape_type": "cuboid",
-                "parameters": {
-                    "o": [  0.2, -1, -1],
-                    "a": [0.2,  0,  0],
-                    "b": [  0,  2,  0],
-                    "c": [  0,  0,  2]
-                }
-            }
         }
     ]
 
