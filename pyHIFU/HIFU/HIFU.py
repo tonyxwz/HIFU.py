@@ -15,9 +15,11 @@ class HIFU(object):
     def __init__(self, transducer: Transducer):
         self.transducer = transducer
         seed = int(time.time())
+        seed = 34839194
         print("random seed:", seed)
         # np.random.seed(18973894)
         np.random.seed(34839194)
+        self.result = None
 
     def set_transducer(self,
                        nature_focus=0,
@@ -63,7 +65,7 @@ class HIFU(object):
                         mc,  # media complex
                         box,  # sampling box
                         verbose,  # print message to stderr
-                        True  # whether running in pararllel
+                        True  # whether running in parallel
                     ))
                 async_results.append(ar)
 
