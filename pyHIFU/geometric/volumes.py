@@ -29,13 +29,11 @@ class Volume(list):
         where self and volume2 is adjacent
         """
         # TODO: judge two planes, coplanary but not completely the same
-        r = list()
         for f1 in self:
             for f2 in volume2:
                 if type(f1) is type(f2):
                     if f1 == f2:
-                        r.append(f1.index)
-        return r
+                        return f1.index
 
 
 class Ball(Volume):
