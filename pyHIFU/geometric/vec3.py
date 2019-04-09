@@ -1,7 +1,7 @@
 import numpy as np
 
 
-EPS = 1e-12
+EPS = 1e-10
 
 class Vec3(object):
     # static methods manipulate a array
@@ -9,7 +9,6 @@ class Vec3(object):
     def are_equal(a, b):
         assert len(a) == len(b) == 3
         return all(np.abs(a - b) <= EPS)
-
     @staticmethod
     def are_parallel(a, b):
         assert len(a) == len(b) == 3
@@ -38,7 +37,12 @@ class Vec3(object):
     @staticmethod
     def is_zero(n):
         return Vec3.is_infinitesimal(n)
-
+    @staticmethod
+    def greaterthan(a, b):
+        return a - b > EPS
+    @staticmethod
+    def num_are_equal(a, b):
+        return np.abs(a - b) <= EPS
     @staticmethod
     def rotation_matrix(axis, theta):
         """
