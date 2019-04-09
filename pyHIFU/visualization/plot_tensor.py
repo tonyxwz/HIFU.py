@@ -59,7 +59,7 @@ def plot_pressure_surf(Z):
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    surf = ax.plot_surface(X, Y, Z[:,:,50], cmap=cm.coolwarm,linewidth=0, antialiased=False)
+    surf = ax.plot_surface(X, Y, Z[:,:,iz], cmap=cm.coolwarm,linewidth=0, antialiased=False)
     fig.colorbar(surf, shrink=0.5, aspect=5)
     plt.show()
 
