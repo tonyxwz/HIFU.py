@@ -14,8 +14,12 @@ def readjson(json_str=None, json_path=None):
     # media_descr_list = j["medium_list"]
     return j
 
+
 def writejson(data=None, path="data/config.json"):
-    pass
+    j = json.dumps(data)
+    with open(path) as f:
+        f.write(j)
+
 
 # def read_transducer(json_str=None, json_path=None):
 
