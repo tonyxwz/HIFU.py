@@ -46,6 +46,7 @@ class Plane(object):
                 return line.to_coordinate(t)
 
     def intersect_plane(self, plane2):
+        # TODO
         return "line"
 
     def has_point(self, point=None):
@@ -68,6 +69,18 @@ class Plane(object):
         return ans
 
     def distance_to_point(self, point):
+        """ return the distance to point `point
+        
+        Parameters
+        ----------
+        point : ndarray shape=(1,3)
+        
+        Returns
+        -------
+        float
+            distance
+        """
+
         v1 = self.p - point
         d = np.abs(np.dot(v1, self.normal_vector))
         return d
@@ -185,26 +198,33 @@ class Rectangle(Plane):
     def has_point(self, point):
         f1 = self.edges[0].find_foot(point)
         f2 = self.edges[1].find_foot(point)
-        if self.edges[0].has_point(f1) and self.edges[1].has_point(f2):
-            return True
-        else:
-            return False
+        
+        return (super().has_point(point)
+                and self.edges[0].has_point(f1) 
+                and self.edges[1].has_point(f2))
 
     def intersect_line(self,
                        line=None,
                        p0=None,
                        vd=None,
                        require_t=False,
-                       as_plane=True):
+                       as_plane=False):
         p = super().intersect_line(
             line=line, p0=p0, vd=vd, require_t=require_t)
+        if as_plane:
+            return p
         if p is not None:
-            if self.has_point(p) or as_plane:
-                return p
-        return None
+            if require_t:
+                p_ = line.to_coordinate(p)
+            else:
+                p_ = p
+            if self.has_point(p_):
+                    return p
+        else:
+            return None
 
     def has_rect(self, other):
-        ans = False
+        ans = True
         for e in other.edges:
             ans = ans and self.has_point(e.p)
         return ans
