@@ -17,7 +17,7 @@ def readjson(json_str=None, json_path=None):
 
 def writejson(data=None, path="data/config.json"):
     j = json.dumps(data)
-    with open(path) as f:
+    with open(path, "w") as f:
         f.write(j)
 
 

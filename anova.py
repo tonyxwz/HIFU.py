@@ -1,5 +1,5 @@
 """
-case one: no interfaces, ray casted from one transducer to infinite markoil
+ANOVA one: no interfaces, ray casted from one transducer to infinite markoil
 medium sample on cube and compare result from traditional method
 """
 
@@ -56,14 +56,15 @@ def run_hifu(config_path, pyd_path, verbose=False, n_core=4, n_rays=None, triden
         n_core=n_core)
     end_time = time.time()
 
-    sig = "_".joint([str(n_rays), str(trident_angle), str(theta_max)])
+    sig = "_".join([str(n_rays), str(trident_angle), str(theta_max)])
     print(f'use {end_time - start_time} seconds')
-    np.save(f'npydata/complex_pressure_{start_time}_{sig}', cp)
-    plot_sliced_tensor(np.abs(cp), slicing_axis=2)
+    np.save(f'npydata/ANOVA/complex_pressure_{start_time}_{sig}', cp)
+    # plot_sliced_tensor(np.abs(cp), slicing_axis=2)
     return cp
 
 
 if __name__ == "__main__":
+    # import glob
     config_path = 'data/case1.json'
     pyd_path = None
     n_core = 8
@@ -77,21 +78,21 @@ if __name__ == "__main__":
         elif opt in ('-j', '--n_core'):
             n_core = int(arg)
     print('using', config_path)
-    ground_truth = np.load(r"C:\Users\20175506\OneDrive - TU Eindhoven\Documents\TUE\1nternship\HIFU-ModenaEtAl-python\pressure_daniela_nray2000.npy")
+    ground_truth = np.load(r"C:\Users\20175506\OneDrive - TU Eindhoven\Documents\TUE\1nternship\HIFU-ModenaEtAl-python\pressure_daniela_20000_markoil.npy")
     ground_truth = np.abs(ground_truth)
     ground_truth = ground_truth[1:, 1:, 1:]
-
-
 
     d_v_n_rays = dict()
     for n_rays in range(500, 20000, 1000):
         try:
+            # npypath = glob.glob('npydata/ANOVA/complex_pressure_*_'+str(n_rays)+"_*.npy")
+            # complexpressure = np.load(npypath[0])
             complexpressure = run_hifu(config_path, pyd_path, verbose=False, n_core=n_core, n_rays=n_rays)
             tmp_pressure = np.abs(complexpressure)
             tmp_dist = pnorm_distance(tmp_pressure, ground_truth)
             d_v_n_rays[n_rays] = tmp_dist
-        except Exception:
-            print(f"ERROR, n_rays={n_rays}")
+        except Exception as e:
+            print(f"ERROR, n_rays={n_rays}, {e}")
     writejson(d_v_n_rays, "data/d_v_n_rays.json")
 
     d_v_trident_angle = dict()
@@ -101,8 +102,8 @@ if __name__ == "__main__":
             tmp_pressure = np.abs(complexpressure)
             tmp_dist = pnorm_distance(tmp_pressure, ground_truth)
             d_v_trident_angle[trident_angle] = tmp_dist
-        except Exception:
-            print(f"ERROR, trident_angle={trident_angle}")
+        except Exception as e:
+            print(f"ERROR, trident_angle={trident_angle}, {e}")
     writejson(d_v_trident_angle, "data/d_v_trident_angle.json")
 
     d_v_theta_max = dict()
@@ -112,6 +113,6 @@ if __name__ == "__main__":
             tmp_pressure = np.abs(complexpressure)
             tmp_dist = pnorm_distance(tmp_pressure, ground_truth)
             d_v_theta_max[theta_max] = tmp_dist
-        except Exception:
-            print(f"ERROR, theta_max={theta_max}")
+        except Exception as e:
+            print(f"ERROR, theta_max={theta_max}, {e}")
     writejson(d_v_theta_max, "data/d_v_theta_max.json")
