@@ -44,6 +44,7 @@ def plot_TElements(te, ax):
     for tr in te:
         if tr.pow_ray.terminated:
             print(tr.id)
+            continue
         else:
             end = tr.pow_ray.p + tr.pow_ray.d
             xyz = np.concatenate((tr.pow_ray.p, end))
@@ -78,9 +79,7 @@ def plot_boundary(pl, ax):
 
 
 def plot_lattice(X, Y, Z, l, origin, ax, color=[]):
-    if len(color):
-        c = color
-    else:
+    if not len(color):
         alpha = 0.3
         color = [0.3, 0.01, 0.01, alpha]
     o = [X*l[0], Y*l[1], Z*l[2]] + origin

@@ -10,6 +10,7 @@ from cached_property import cached_property
 import warnings
 warnings.simplefilter("error")
 
+
 class Ray(GeoRay):
     def __init__(self,
                  start=None,
@@ -19,17 +20,17 @@ class Ray(GeoRay):
         super().__init__(start, direction)
         try:
             x_inv = 1 / self.d[0]
-        except ZeroDivisionError:
+        except (ZeroDivisionError, RuntimeWarning, RuntimeError) as e:
             x_inv = np.inf
 
         try:
             y_inv = 1 / self.d[1]
-        except ZeroDivisionError:
+        except (ZeroDivisionError, RuntimeWarning, RuntimeError) as e:
             y_inv = np.inf
 
         try:
             z_inv = 1 / self.d[2]
-        except ZeroDivisionError:
+        except (ZeroDivisionError, RuntimeWarning, RuntimeError) as e:
             z_inv = np.inf
 
         self.d_inv = np.array([x_inv, y_inv, z_inv])
@@ -266,12 +267,12 @@ class Trident(object):
         next_medium = self.next_medium(mc)
         # if there's no next medium, stop propagation
         if self.medium.is_init:
-            # only consider refraction in init media
+            # only consider refraction out from init media
             return k
         if next_medium is None:
-            # return k
-            # TODO find better implementation
-            next_medium = mc[self.medium.id - 1]
+            # same as Daniela's solution
+            return k
+
         T, R, Ph_refl, Ph_tr = coefficient_ll(self.pow_ray.d,
                                               self.medium.shape[self.exiting_face_index].n,
                                               self.medium.c[self.wave_type],
@@ -308,7 +309,7 @@ class Trident(object):
 
         # reflected trident, different type
         if self.medium.state == SOLID:
-            new_wave_type = (self.pow_ray.wave_type + 1) % 2  # fancy
+            new_wave_type = (self.pow_ray.wave_type + 1) % 2  # 1->0, 0->1
             pow_dir_2 = vray_reflected(
                 self.pow_ray,
                 self.medium[self.exiting_face_index],

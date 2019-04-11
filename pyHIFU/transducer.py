@@ -45,7 +45,7 @@ class TElement(list):
                    n=100,
                    trident_angle=1e-4,
                    theta_max=np.pi / 6):
-        """ use `te.cast` directly
+        """ use `te.cast` directly instead
         initialize all trident rays until they hit markoil interface
         `init_medium`: e.g. lossless / markoil
         `n`: number of rays per transducer

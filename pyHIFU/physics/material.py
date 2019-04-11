@@ -34,7 +34,19 @@ PHYSICS_PROPERTIES = {
     },
     'bone': {
         "material_name": "bone",
-        "state": LIQUID,
+        "state": SOLID,
+        'density': 2025.0,
+        'cL': 3736.0,
+        'cS': 1995.0,
+        'absorption': None,
+        'attenuationL': 1.9,
+        'attenuationS': 2.8,
+        'heat_capacity': 3720.0,
+        'thermal_conductivity': 0.487
+    },
+    'fake_bone': {
+        "material_name": "bone",
+        "state": LIQUID,  # Yeah
         'density': 2025.0,
         'cL': 3736.0,
         'cS': 1995.0,
