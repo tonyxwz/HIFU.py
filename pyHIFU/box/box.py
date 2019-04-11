@@ -106,9 +106,9 @@ class Box(Cuboid):
             Y_out = int(qe[1])
             Z_out = int(qe[2])
 
-            tMaxX = (1 - rs[0] / self.lx) * tDeltaX if stepX > 0 else rs[0] / self.lx * tDeltaX
-            tMaxY = (1 - rs[1] / self.ly) * tDeltaY if stepY > 0 else rs[1] / self.ly * tDeltaY
-            tMaxZ = (1 - rs[2] / self.lz) * tDeltaZ if stepZ > 0 else rs[2] / self.lz * tDeltaZ
+            tMaxX = (1 - rs[0] / self.lx) * tDeltaX if ray.d[0] > 0 else rs[0] / self.lx * tDeltaX
+            tMaxY = (1 - rs[1] / self.ly) * tDeltaY if ray.d[1] > 0 else rs[1] / self.ly * tDeltaY
+            tMaxZ = (1 - rs[2] / self.lz) * tDeltaZ if ray.d[2] > 0 else rs[2] / self.lz * tDeltaZ
 
             # tMaxX = self.lx - m[0] if stepX == 1 else m[0]
             # tMaxY = self.ly - m[1] if stepY == 1 else m[1]
