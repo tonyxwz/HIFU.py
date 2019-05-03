@@ -90,7 +90,7 @@ class HIFU(object):
                     mc,  # media complex
                     box,  # sampling box
                     verbose,  # print message to stderr
-                    False  # whether running in pararllel
+                    False  # whether running in parallel
                 )
         self.result = complex_pressure  # TODO to heat production
         return complex_pressure
@@ -139,6 +139,7 @@ class HIFU(object):
             for k in I.getdata():
                 # one could just assume I, ph, counter always have the same keys
                 # use the Z of last tr because one bundle have the same medium
+                # pc: pressure (complex number)
                 pc[k] += np.sqrt(2 * tr.medium.Z * I[k] / counter[k]) * np.exp(
                     1j * ph[k] / counter[k])
         if verbose:

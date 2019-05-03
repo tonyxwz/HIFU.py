@@ -18,6 +18,7 @@ from pyHIFU.transducer import TElement, Transducer
 from pyHIFU.visualization.plot_tensor import (plot_pressure_surf,
                                               plot_sliced_tensor)
 from evaluation import pnorm_distance
+
 # try:
 #     import seaborn
 #     seaborn.set()

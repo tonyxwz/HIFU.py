@@ -110,7 +110,8 @@ class TElement(list):
              mc=[],
              trident_angle=1e-4,
              theta_max=np.pi / 6,
-             initial_phase=0):
+             initial_phase=0,
+             power_limit_frac=1000):
         """
         """
         self.init_medium = mc[0]
@@ -166,7 +167,7 @@ class TElement(list):
                 medium=mc[0],
                 legacy=[],
                 wave_type=LONGITUDINAL)
-            power_limit = tr.P0 / 100  # TODO
+            power_limit = tr.P0 / power_limit_frac  # TODO
             # https://docs.python.org/3/tutorial/datastructures.html
             tr_queue = deque()
             tr_queue.append(tr)
@@ -175,7 +176,7 @@ class TElement(list):
                 # print("before reflect:", len(tr_queue))
                 tnow = tr_queue.popleft()
                 if tnow.P0 < power_limit:
-                    # print("discarded")
+                    print(tnow.bundle_identifier, "discarded")
                     continue
                 if tnow.bundle_identifier not in bundle_dict:
                     bundle_dict[tnow.bundle_identifier] = []
@@ -360,7 +361,7 @@ class Transducer(list):
 
         bundle_dict = dict()
         for te in self:
-            b = te.cast(mc)
+            b = te.cast(mc=mc)
             bundle_dict.update(b)
         return bundle_dict
 

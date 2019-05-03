@@ -46,7 +46,7 @@ if __name__ == "__main__":
     # (x, y, z)
     start_coord = np.array([0, 0.01, 0])
     focus_coord = np.array([0.14, 0, 0])
-    trident_angle = 5e-3
+    trident_angle = 5e-2
     pow_dire = Vec3.normalize(focus_coord - start_coord)
 
     ray_helper = Ray(start_coord, pow_dire)
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     tr_list_reflect = trident.reflect(mc)
     tr_list_refract = trident.refract(mc)
 
-    assert tr_list_refract[0].pow_ray.d[2] == 0  # all intersection happen in x-y plane
+    assert 0 == tr_list_refract[0].pow_ray.d[2]  # all intersection happen in x-y plane
     assert len(tr_list_reflect) == 0  # no ray reflected in markoil
 
     # print(trident.pow_ray.end, trident.bundle_identifier)
