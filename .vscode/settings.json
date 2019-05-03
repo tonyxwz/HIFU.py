@@ -14,16 +14,16 @@
         "**/*.pyc": true,
         "**/*.env/": true
     },
-    "python.unitTest.unittestArgs": [
+    "python.testing.unittestArgs": [
         "-v",
         "-s",
         "./pyHIFU/tests",
         "-p",
         "test*.py"
     ],
-    "python.unitTest.pyTestEnabled": false,
-    "python.unitTest.nosetestsEnabled": false,
-    "python.unitTest.unittestEnabled": true,
+    "python.testing.pyTestEnabled": false,
+    "python.testing.nosetestsEnabled": false,
+    "python.testing.unittestEnabled": true,
     "python.pythonPath": "C:\\Users\\20175506\\AppData\\Local\\Continuum\\anaconda3\\envs\\pyHIFU\\python.exe",
     "terminal.integrated.shellArgs.windows": [
         "-NoExit",
