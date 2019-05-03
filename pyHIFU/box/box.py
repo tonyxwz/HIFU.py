@@ -8,6 +8,8 @@ from pyHIFU.ray import Trident
 from pyHIFU.visualization.mkplots import plot_box, plot_lattice, plot_ray
 from pyHIFU.box.lattice import Lattice
 from pyHIFU.box.sparse3d import Sparse3D
+from cached_property import cached_property
+
 
 class Box(Cuboid):
     def __init__(self, x1, y1, z1, x2, y2, z2,
@@ -39,14 +41,56 @@ class Box(Cuboid):
         self.nxyz = np.array([self.nx, self.ny, self.nz])
 
         self.abc = self.nxyz * self.l  # the length of edges (after rounding)
+        self.latrix = dict()
+
+    @cached_property
+    def lattice_diagonal(self):
+        """Diagonal is the maximum length of any intersection with a cube"""
+        return np.sqrt(np.sum(self.l**2))
 
     def intersect_trident(self, tr:Trident, I:Sparse3D, ph:Sparse3D, counter:Sparse3D,
                           v=None, w=None):  # TODO for solid media
         # add the contribution of one trident to this box
-        update_func = lambda x, y, z: self.update_lattice(x, y, z, tr, I, ph, counter)
+        update_func = lambda x, y, z: self.update_lattice_weighted(x, y, z, tr, I, ph, counter)
         self.traversal_along(tr.pow_ray, func=update_func)
-    
+
     def update_lattice(self, x, y, z, tr:Trident, I, ph, counter):
+        """
+        `tr`: trident instance
+        `sparse`: the sparse matrix to be updated e.g. I, Phase, velocity and etc
+        """
+        p = self.lattice_center(x, y, z)
+        t = tr.pow_ray.find_foot(p, return_t=True)
+
+        I[x, y, z] += tr.get_intensity_at(t)
+        ph[x, y, z] += tr.get_phase_at(t)
+        counter[x, y, z] += 1
+
+    def update_lattice_weighted(self, x, y, z, tr:Trident, I, ph, counter):
+        """
+        `tr`: trident instance
+        `sparse`: the sparse matrix to be updated e.g. I, Phase, velocity and etc
+        """
+        pmin = self.lattice_min(x, y, z)
+        if (x, y, z) not in self.latrix:
+            self.latrix[(x, y, z)] = Lattice(pmin, self.l)
+        lattice = self.latrix[(x, y, z)]
+        st, et = lattice.rayBoxIntersection(tr.pow_ray)
+        if st is not None and et is not None:
+            intersection_length = et - st
+            weight = intersection_length / self.lattice_diagonal
+            # print(et - st, self.lattice_diagonal)
+            p = self.lattice_center(x, y, z)
+            t = tr.pow_ray.find_foot(p, return_t=True)
+
+            I[x, y, z] += tr.get_intensity_at(t) * weight
+            ph[x, y, z] += tr.get_phase_at(t)
+            counter[x, y, z] += 1
+        else:
+            print("Ray intersects box at boundary.")
+            pass
+
+    def update_lattice_dbg(self, x, y, z, tr:Trident, I, ph, counter):
         """
         `tr`: trident instance
         `sparse`: the sparse matrix to be updated e.g. I, Phase, velocity and et cetera
@@ -54,8 +98,8 @@ class Box(Cuboid):
         p = self.lattice_center(x, y, z)
         t = tr.pow_ray.find_foot(p, return_t=True)
 
-        I[x, y, z] += tr.get_intensity_at(t)
-        ph[x, y, z] += tr.get_phase_at(t)
+        I[x, y, z] += 1
+        ph[x, y, z] += 0
         counter[x, y, z] += 1
 
     def traversal_along(self, ray, func=None, debug=False, ax=None, color=[]):
@@ -201,13 +245,19 @@ class Box(Cuboid):
     def lattice_center(self, x, y, z):
         return self.l * [x+0.5, y+0.5, z+0.5] + self.o1
 
+    def lattice_min(self, x, y, z):
+        """
+        To calculate the intersection line length
+        """
+        return self.l * [x, y, z] + self.o1
+
 
 if __name__ == "__main__":
     # testing
     from pyHIFU.ray import AuxRay
     import numpy as np
     import matplotlib.pyplot as plt
-    import seaborn
+
     from mpl_toolkits.mplot3d import Axes3D
     import mpl_toolkits.mplot3d as mp3d
     from random import random
@@ -245,4 +295,5 @@ if __name__ == "__main__":
     B.traversal_along(r3, func=print, debug=True, ax=ax, color=[0,1,0,0.5])
     print(time.time() - t0)
     plot_box(B, ax, title="Box intersection")
+    fig.tight_layout()
     plt.show()
