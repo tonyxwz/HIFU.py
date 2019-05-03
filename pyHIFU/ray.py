@@ -214,7 +214,7 @@ class Trident(object):
         self.id = ray_id  # ray id
         self.el_id = el_id  # element index
 
-        # Must copy to assign value, shallow copy is enough as str are inmutable
+        # Must copy to assign value, shallow copy is enough as str are immutable
         self.history = shlwcopy(legacy)
         self.history.append(str(self.medium.id))
 
@@ -273,13 +273,6 @@ class Trident(object):
             # same as Daniela's solution
             return k
 
-        T, R, Ph_refl, Ph_tr = coefficient_ll(self.pow_ray.d,
-                                              self.medium.shape[self.exiting_face_index].n,
-                                              self.medium.c[self.wave_type],
-                                              next_medium.c[self.wave_type],
-                                              self.medium.density,
-                                              next_medium.density)
-        assert Vec3.num_are_equal(T+R, 1)
         # reflected trident, same type
         pow_dir_1 = vray_reflected(self.pow_ray,
                                    self.medium.shape[self.exiting_face_index])
@@ -290,6 +283,14 @@ class Trident(object):
 
         # https://en.wikipedia.org/wiki/Reflection_phase_change
         if pow_dir_1 is not None and aux1_dir_1 is not None and aux2_dir_1 is not None:
+            # TODO insert routine to check the interaction type (f-f) (s-s) (f-s) (s-f)
+            T, R, Ph_refl, Ph_tr = coefficient_ll(self.pow_ray.d,
+                                                  self.medium.shape[self.exiting_face_index].n,
+                                                  self.medium.c[self.wave_type],
+                                                  next_medium.c[self.wave_type],
+                                                  self.medium.density,
+                                                  next_medium.density)
+
             tr_1 = Trident(
                 self.pow_ray.end,
                 pow_dir_1,
@@ -309,7 +310,7 @@ class Trident(object):
 
         # reflected trident, different type
         if self.medium.state == SOLID:
-            new_wave_type = (self.pow_ray.wave_type + 1) % 2  # 1->0, 0->1
+            new_wave_type = (self.pow_ray.wave_type + 1) % 2  # 1 -> 0, 0 -> 1
             pow_dir_2 = vray_reflected(
                 self.pow_ray,
                 self.medium[self.exiting_face_index],
@@ -404,16 +405,19 @@ class Trident(object):
                 self.medium[self.exiting_face_index],
                 c1=self.medium.c[self.wave_type],
                 c2=next_medium.c[new_wave_type])
+
             aux1_dir_2 = vray_refracted(
                 self.aux_ray1,
                 self.medium[self.exiting_face_index],
                 c1=self.medium.c[self.wave_type],
                 c2=next_medium.c[new_wave_type])
+
             aux2_dir_2 = vray_refracted(
                 self.aux_ray2,
                 self.medium[self.exiting_face_index],
                 c1=self.medium.c[self.wave_type],
                 c2=next_medium.c[new_wave_type])
+
             if pow_dir_2 is not None and aux1_dir_2 is not None and aux2_dir_2 is not None:
                 # total internal refraction
                 tr_2 = Trident(
@@ -497,7 +501,6 @@ class Trident(object):
         `d`: distance (scalar)
         """
         A1 = self.get_area_at(d)
-        # TODO add attenuation here (or rename to `get_intensity_at`)
         I1 = self.P0 * self.attenufactor(d - self.len0) / A1
         # Q = I1 * 2 * attenuation
         return I1

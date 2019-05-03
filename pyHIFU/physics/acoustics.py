@@ -116,8 +116,14 @@ def coefficient_ll(v_in, n, c1, c2, rho1, rho2):
 
     costheta_i = np.dot(v_in, n)
     sintheta_i = np.sqrt(1 - costheta_i**2)
-    sintheta_t = (c2 / c1) * sintheta_i
-    costheta_t = np.sqrt(1 - sintheta_t**2)
+    tmp = (c2 / c1) * sintheta_i
+    if tmp > 1:
+        # Total internal reflection
+        sintheta_t = 1
+        costheta_t = 0
+    else:
+        sintheta_t = tmp
+        costheta_t = np.sqrt(1 - sintheta_t**2)
 
     T = (4 * rho1 * c1 * rho2 * c2 * costheta_t * costheta_i) / (rho2 * c2 * costheta_i + rho1 * c1 * costheta_t) ** 2
     R = ((rho2 * c2 * costheta_i - rho1 * c1 * costheta_t) ** 2) / (rho2 * c2 * costheta_i + rho1 * c1 * costheta_t) ** 2
