@@ -134,6 +134,7 @@ class HIFU(object):
             ph = Sparse3D(box.nxyz)
             counter = Sparse3D(box.nxyz, dtype=int)
             for tr in tr_list:
+                # TODO if tr is shear else longit
                 box.intersect_trident(tr, I, ph, counter)
 
             for k in I.getdata():
