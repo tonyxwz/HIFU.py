@@ -1,6 +1,7 @@
 # pyHIFU
 
 HIFU simulation in python, with Trident ray tracing
+
 [Link to a more detailed report](https://github.com/tonyxwz/InternshipReport/blob/master/report.pdf)
 
 ![example](img/transducer.png)
