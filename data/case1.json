@@ -15,7 +15,7 @@
         },
 
         "element_init_paras": {
-            "n_rays": 5000,
+            "n_rays": 200,
             "trident_angle": 5e-3,
             "theta_max": 0.05
         }

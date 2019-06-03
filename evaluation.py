@@ -9,9 +9,9 @@ def pnorm_distance(a1, a2):
     a1 = normalize(a1)
     a2 = normalize(a2)
     x = np.abs(a1 - a2)
-    x = np.power(x, 3)
+    x = np.power(x, 2)
     s = np.sum(x)
-    s = np.power(s, 1/3)
+    s = np.sqrt(s)
     return s
 
 

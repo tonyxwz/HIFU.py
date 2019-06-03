@@ -59,7 +59,7 @@ def run_hifu(config_path, pyd_path, verbose=False, n_core=4):
 if __name__ == "__main__":
     config_path = 'data/case1.json'
     pyd_path = None
-    n_core = 8
+    n_core = 0
     options, remainder = getopt.getopt(sys.argv[1:], 'i:o:j:',
                                        ['output=', 'input=', 'n_core='])
     for opt, arg in options:

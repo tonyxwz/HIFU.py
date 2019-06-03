@@ -86,9 +86,9 @@ class Box(Cuboid):
             I[x, y, z] += tr.get_intensity_at(t) * weight
             ph[x, y, z] += tr.get_phase_at(t)
             counter[x, y, z] += 1
-        else:
-            print("Ray intersects box at boundary.")
-            pass
+        # else:
+        #     print("Ray intersects box at boundary.")
+        #     pass
 
     def update_lattice_dbg(self, x, y, z, tr:Trident, I, ph, counter):
         """

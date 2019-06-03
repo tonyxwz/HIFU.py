@@ -37,6 +37,7 @@ fig, ax = plt.subplots()
 ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
 ax.plot(trident_angle_l, trident_angle_v)
 ax.title.set_text("trident angle")
+ax.set_ylim([2.5, 5])
 ax.set_xlabel("trident angle")
 ax.set_ylabel("pnorm distance")
 
