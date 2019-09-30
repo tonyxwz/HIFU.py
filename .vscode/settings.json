@@ -21,7 +21,7 @@
         "-p",
         "test*.py"
     ],
-    "python.testing.pyTestEnabled": false,
+    "python.testing.pytestEnabled": false,
     "python.testing.nosetestsEnabled": false,
     "python.testing.unittestEnabled": true,
     "python.pythonPath": "C:\\Users\\20175506\\AppData\\Local\\Continuum\\anaconda3\\envs\\pyHIFU\\python.exe",
@@ -30,5 +30,51 @@
         "-Command",
         "conda activate pyHIFU"
     ],
-    "python.terminal.activateEnvironment": false
+    "python.terminal.activateEnvironment": false,
+    "json.schemas": [
+        {
+            "fileMatch": [
+                "*.powconfig"
+            ],
+            "url": "https://raw.githubusercontent.com/Engineer2B/PowerCalculator-Schemas/e5918251092690abcfb05f2ad5a6bf251f1500c6/powconfig.schema.json"
+        },
+        {
+            "fileMatch": [
+                "*.fluid"
+            ],
+            "url": "https://raw.githubusercontent.com/Engineer2B/PowerCalculator-Schemas/5c081627d431889dcac94014aa56539e5a024099/fluid.schema.json"
+        },
+        {
+            "fileMatch": [
+                "*.solid"
+            ],
+            "url": "https://raw.githubusercontent.com/Engineer2B/PowerCalculator-Schemas/5c081627d431889dcac94014aa56539e5a024099/solid.schema.json"
+        },
+        {
+            "fileMatch": [
+                "*.preset"
+            ],
+            "url": "https://raw.githubusercontent.com/Engineer2B/PowerCalculator-Schemas/e3b5ef1f5eebc69722995f7e32672739f733af26/preset.schema.json"
+        },
+        {
+            "fileMatch": [
+                "*.surface"
+            ],
+            "url": "https://raw.githubusercontent.com/Engineer2B/PowerCalculator-Schemas/e3b5ef1f5eebc69722995f7e32672739f733af26/surface.schema.json"
+        },
+        {
+            "fileMatch": [
+                "*.transducer"
+            ],
+            "url": "https://raw.githubusercontent.com/Engineer2B/PowerCalculator-Schemas/29acdf1159c612be10331e2aca7f726934239f15/transducer.schema.json"
+        }
+    ],
+    "files.associations": {
+        "*.powconfig": "json",
+        "*.fluid": "json",
+        "*.solid": "json",
+        "*.preset": "json",
+        "*.surface": "json",
+        "*.transducer": "json"
+    }
 }

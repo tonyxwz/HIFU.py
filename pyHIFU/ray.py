@@ -378,7 +378,7 @@ class Trident(object):
                                                   next_medium.c[self.wave_type],
                                                   self.medium.density,
                                                   next_medium.density)
-            assert Vec3.num_are_equal(T + R, 1)
+            # assert Vec3.num_are_equal(T + R, 1)
             # total internal refraction
             tr_1 = Trident(
                 self.pow_ray.end,

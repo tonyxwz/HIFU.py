@@ -133,6 +133,7 @@ def coefficient_ll(v_in, n, c1, c2, rho1, rho2):
     # phase of reflection coeff:
     Ph_refl = np.angle(Rp)
     Ph_tr = np.angle(Tp)
+    T = T * costheta_t / costheta_i
     return T, R, Ph_refl, Ph_tr
 
 
